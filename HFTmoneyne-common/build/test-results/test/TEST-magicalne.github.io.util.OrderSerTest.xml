@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="magicalne.github.io.util.OrderSerTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2019-03-23T10:00:10" hostname="192.168.0.104" time="0.498">
+  <properties/>
+  <testcase name="test" classname="magicalne.github.io.util.OrderSerTest" time="0.498"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

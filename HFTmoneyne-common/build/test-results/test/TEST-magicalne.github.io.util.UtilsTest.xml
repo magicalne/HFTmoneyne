@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="magicalne.github.io.util.UtilsTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2019-03-23T10:00:10" hostname="192.168.0.104" time="0.248">
+  <properties/>
+  <testcase name="extractStringFieldFromJSONArrayTest" classname="magicalne.github.io.util.UtilsTest" time="0.003"/>
+  <testcase name="extractStringFieldFromJSONTest" classname="magicalne.github.io.util.UtilsTest" time="0.0"/>
+  <testcase name="bitmexSignatureTest1" classname="magicalne.github.io.util.UtilsTest" time="0.243"/>
+  <testcase name="bitmexSignatureTest2" classname="magicalne.github.io.util.UtilsTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

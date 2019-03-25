@@ -1,0 +1,5 @@
+dependencies {
+    compile project(':HFTmoneyne-common')
+    compile group: 'io.netty', name: 'netty-all', version: '4.1.32.Final'
+    compile group: 'net.openhft', name: 'affinity', version: '3.0.6'
+}

@@ -1,3 +1,6 @@
 rootProject.name = 'HFTmoneyne'
 include 'HFTmoneyne-exchange'
+include 'HFTmoneyne-httpclient'
+include 'HFTmoneyne-trade'
+include 'HFTmoneyne-common'
 
