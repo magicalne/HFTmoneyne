@@ -124,17 +124,20 @@ public class BitMexTradeService {
   }
 
   private void postRequestHandler(String verb, String path, String body, long ns) {
+    long start = System.nanoTime();
     ByteBuf content = Unpooled.copiedBuffer(body, StandardCharsets.UTF_8);
     HttpHeaders headers = createHeaders(verb, path, body, content.readableBytes());
     DefaultFullHttpRequest req = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, path, content);
     req.headers().setAll(headers);
+    long end = System.nanoTime();
+    log.info("Create request cost: {}ns", end-start);
     try {
       initializer.sendRequest(req);
     } catch (Exception e) {
       log.error("Failed to send place order request, body: {}, header: {}, {}", body, headers, e);
     } finally {
       long duration = System.nanoTime() - ns;
-      log.info("Execution latency: {}ns", duration);
+      log.info("Execution total latency: {}ns", duration);
     }
   }
 
