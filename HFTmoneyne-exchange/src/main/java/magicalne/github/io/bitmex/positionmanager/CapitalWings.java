@@ -34,7 +34,7 @@ public class CapitalWings {
   public void execute() {
     for (;;) {
       try {
-        cancelRiskyOrder();
+//        cancelRiskyOrder();
         cancelOldOrders();
         placeNewOrder();
         cleanOrders();

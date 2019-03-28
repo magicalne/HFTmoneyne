@@ -1,18 +1,14 @@
 package magicalne.github.io.trade;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.handler.proxy.HttpProxyHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.timeout.IdleStateHandler;
-
-import java.net.InetSocketAddress;
 
 public class BitMexTradeIHandlerInitializer extends ChannelInitializer<Channel> {
 
@@ -36,14 +32,14 @@ public class BitMexTradeIHandlerInitializer extends ChannelInitializer<Channel> 
 //    pipeline.addFirst(new HttpProxyHandler(new InetSocketAddress("localhost", 1087)));
     bitMexTradeHandler = new BitMexTradeHandler(host, port);
     pipeline.addLast(
-      new HttpClientCodec(),
+      new BitMexHttpClientCodec(),
       new IdleStateHandler(50, 50, 50),
       bitMexTradeHandler,
       new HttpObjectAggregator(8192),
       new LoggingHandler(LogLevel.DEBUG));
   }
 
-  void sendRequest(FullHttpRequest req) {
-    bitMexTradeHandler.sendRequest(req);
+  ChannelFuture sendRequest(Object req) {
+    return bitMexTradeHandler.sendRequest(req);
   }
 }

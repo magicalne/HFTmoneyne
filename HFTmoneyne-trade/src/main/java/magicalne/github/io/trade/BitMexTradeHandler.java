@@ -2,10 +2,13 @@ package magicalne.github.io.trade;
 
 import com.google.common.base.Strings;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.http.*;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@ChannelHandler.Sharable
 public class BitMexTradeHandler extends TradeHandler {
 
   BitMexTradeHandler(String host, int port) {
@@ -63,19 +66,15 @@ public class BitMexTradeHandler extends TradeHandler {
   void keepAlive(Channel channel) {
     log.info("Send keep-alive request");
     DefaultFullHttpRequest req = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/healthcheck");
+    req.headers().add(HttpHeaderNames.HOST, host);
     sendRequest(req);
   }
 
-  public void sendRequest(FullHttpRequest req) {
-    if (invalidate()) return;
-    addHeader(req);
+  public ChannelFuture sendRequest(Object req) {
+    if (invalidate()) return null;
     if (this.ctx != null && ctx.channel().isActive()) {
-      ctx.channel().writeAndFlush(req);
+      return ctx.writeAndFlush(req);
     }
-  }
-
-  private void addHeader(FullHttpRequest request) {
-    request.headers().add(HttpHeaderNames.HOST, host);
-    request.headers().add(HttpHeaderNames.USER_AGENT, "hft-httpclient");
+    return null;
   }
 }

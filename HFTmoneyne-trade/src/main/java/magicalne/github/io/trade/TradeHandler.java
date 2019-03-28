@@ -5,13 +5,16 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import lombok.extern.slf4j.Slf4j;
+import sun.misc.Contended;
 
 @Slf4j
 public abstract class TradeHandler extends SimpleChannelInboundHandler<HttpObject> {
 
+  @Contended
   volatile long retryForOverloadTime = -1;
+  @Contended
   volatile long retryForResetLimitTime = -1;
-  final String host;
+  protected final String host;
   private final int port;
 
   ChannelHandlerContext ctx;
@@ -32,8 +35,7 @@ public abstract class TradeHandler extends SimpleChannelInboundHandler<HttpObjec
   }
 
   @Override
-  public void channelActive(ChannelHandlerContext ctx) throws Exception {
-//    super.channelActive(ctx);
+  public void channelActive(ChannelHandlerContext ctx) {
     this.ctx = ctx;
     log.info("Connected to server. channel active: {}", ctx.channel().isActive());
   }

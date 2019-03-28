@@ -5,13 +5,14 @@ import magicalne.github.io.bitmex.BitmexMarket;
 import magicalne.github.io.bitmex.positionmanager.CapitalWings;
 import magicalne.github.io.bitmex.signal.OrderRobbery;
 import magicalne.github.io.trade.BitMexTradeService;
+import magicalne.github.io.wire.bitmex.OrderBookEntry;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
 public class Application {
-  public static void main(String[] args) throws InterruptedException, IOException, ExecutionException {
+  public static void main(String[] args) throws Exception {
     String symbol = "XBTUSD";
     String apiKey = "b8nU8IJ6YhXdMGCws4FlpN-x";
     String apiSecret = "CqomC-BvhHvFbX5tX3Ztxf7tFN7ZvdELE5pqXPwqEHrXW5OM";
@@ -20,10 +21,19 @@ public class Application {
     double tick = 0.5;
     int qty = 20;
 
-    BitMexTradeService trade = new BitMexTradeService(symbol, apiKey, apiSecret, url);
     BitmexMarket market = new BitmexMarket(symbol, apiKey, apiSecret, 5000);
     market.createWSConnection();
     Thread.sleep(10000);
+    OrderBookEntry bestBid;
+    while (true) {
+      bestBid = market.getBestBid();
+      if (bestBid != null) {
+        break;
+      }
+    }
+    BitMexTradeService trade = new BitMexTradeService(symbol, apiKey, apiSecret, url);
+    trade.cachePlaceOrderRequest(bestBid.getPrice(), 40, qty, tick, scale);
+    BitMexTradeService.connect().sync();
     OrderRobbery orderRobbery = new OrderRobbery(market, trade, qty, tick, scale);
     orderRobbery.execute();
 

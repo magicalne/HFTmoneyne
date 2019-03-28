@@ -3,11 +3,9 @@ package magicalne.github.io.bitmex;
 import com.google.common.hash.HashFunction;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
-import com.lmax.disruptor.util.DaemonThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 import magicalne.github.io.util.Utils;
 import magicalne.github.io.wire.bitmex.*;
-import net.openhft.affinity.AffinityLock;
 import net.openhft.affinity.AffinityStrategies;
 import net.openhft.affinity.AffinityThreadFactory;
 import net.openhft.chronicle.bytes.Bytes;
@@ -32,7 +30,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import static org.asynchttpclient.Dsl.*;
+import static org.asynchttpclient.Dsl.asyncHttpClient;
+import static org.asynchttpclient.Dsl.config;
 
 @Slf4j
 public class BitmexMarket {
