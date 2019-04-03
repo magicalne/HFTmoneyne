@@ -68,11 +68,11 @@ public class BitMexOrderBook {
   public void delete(List<OrderBookEntry> entries) {
     for (OrderBookEntry e : entries) {
       if (e.getSide() == SideEnum.Buy) {
-        if (delete(e, bids)) {
+        if (delete(e, bids, bidDeleteIndex)) {
           this.bidDeleteIndex --;
         }
       } else {
-        if (delete(e, asks)) {
+        if (delete(e, asks, askDeleteIndex)) {
           this.askDeleteIndex --;
         }
       }
@@ -82,11 +82,11 @@ public class BitMexOrderBook {
   public void insert(List<OrderBookEntry> entries) {
     for (OrderBookEntry e : entries) {
       if (e.getSide() == SideEnum.Buy) {
-        if (insert(e, bids, false)) {
+        if (insert(e, bids, false, bidDeleteIndex)) {
           this.bidDeleteIndex ++;
         }
       } else {
-        if (insert(e, asks, true)) {
+        if (insert(e, asks, true, askDeleteIndex)) {
           this.askDeleteIndex ++;
         }
       }
@@ -103,12 +103,12 @@ public class BitMexOrderBook {
     }
   }
 
-  private boolean delete(OrderBookEntry e, OrderBookEntry[] array) {
-    for (int i = 0; i < size; i ++) {
+  private boolean delete(OrderBookEntry e, OrderBookEntry[] array, int index) {
+    for (int i = 0; i < index; i ++) {
       if (array[i].getId() == e.getId()) {
         OrderBookEntry deleted = array[i];
-        System.arraycopy(array, i + 1, array, i, size - i - 1);
-        array[size - 1] = deleted;
+        System.arraycopy(array, i + 1, array, i, index - i - 1);
+        array[index - 1] = deleted;
         deleted.setId(-1L);
         deleted.setPrice(-1);
         return true;
@@ -117,16 +117,16 @@ public class BitMexOrderBook {
     return false;
   }
 
-  private boolean insert(OrderBookEntry inserted, OrderBookEntry[] array, boolean ascending) {
-    for (int i = 0; i < size; i ++) {
+  private boolean insert(OrderBookEntry inserted, OrderBookEntry[] array, boolean ascending, int index) {
+    for (int i = 0; i < index; i ++) {
       OrderBookEntry e = array[i];
       boolean insertable = ascending ? inserted.getPrice() < e.getPrice() : inserted.getPrice() > e.getPrice();
       if (insertable) {
-        OrderBookEntry tmp = array[size - 1];
+        OrderBookEntry tmp = array[index];
         tmp.setId(inserted.getId());
         tmp.setSize(inserted.getSize());
         tmp.setPrice(inserted.getPrice());
-        System.arraycopy(array, i, array, i + 1, size - i - 1);
+        System.arraycopy(array, i, array, i + 1, index - i - 1);
         array[i] = tmp;
         return true;
       }
