@@ -109,8 +109,7 @@ public class CapitalWings {
         long orderPriceLong = (long) (order.getPrice() * scale);
         if (order.getOrdStatus() == OrderStatus.PartiallyFilled || order.getOrdStatus() == OrderStatus.New) {
           if ((order.getSide() == SideEnum.Buy && orderPriceLong < bestBidPriceLong) ||
-            (order.getSide() == SideEnum.Sell && orderPriceLong > bestAskPriceLong) ||
-            (market.getPosition().getCurrentQty() == 0 && order.getOrderQty() != qty)) {
+            (order.getSide() == SideEnum.Sell && orderPriceLong > bestAskPriceLong)) {
             ORDER_WRAPPER.setValue(order.getOrderID());
             boolean success = cancelOrderRecords.putIfAbsent(ORDER_WRAPPER, System.currentTimeMillis());
             if (success) {

@@ -1,6 +1,5 @@
 package magicalne.github.io.positionmanager;
 
-import magicalne.github.io.exception.ObjectPoolOutOfSizeException;
 import magicalne.github.io.util.LongWrapper;
 import magicalne.github.io.util.ObjectPool;
 import magicalne.github.io.util.StringWrapper;
