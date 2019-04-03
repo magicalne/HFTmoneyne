@@ -111,7 +111,8 @@ public class CapitalWings {
             ORDER_WRAPPER.setValue(order.getOrderID());
             boolean success = cancelOrderRecords.putIfAbsent(ORDER_WRAPPER, System.currentTimeMillis());
             if (success) {
-              log.info("cancel order: {}", order);
+              log.info("cancel {} order: {} {}, best bid: {}, best ask: {}",
+                order.getSide(), order.getOrderID(), order.getPrice(), bestBid.getPrice(), bestAsk.getPrice());
               trade.cancelOrder(order.getOrderID());
             }
           }
