@@ -124,7 +124,6 @@ public class Order implements Marshallable {
   }
 
   public void copyFrom(Order order) {
-    this.orderID = order.getOrderID();
     this.clOrdID = order.getClOrdID();
     this.clOrdLinkID = order.getClOrdLinkID();
     this.account = order.getAccount();
@@ -157,6 +156,8 @@ public class Order implements Marshallable {
     this.text = order.getText();
     this.transactTime = order.getTransactTime();
     this.timestamp = order.getTimestamp();
+    this.orderID = order.getOrderID();
+
   }
 
   public void updateFrom(Order order) {
