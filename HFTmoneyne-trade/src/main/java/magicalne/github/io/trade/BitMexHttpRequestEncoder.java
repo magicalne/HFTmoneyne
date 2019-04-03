@@ -2,7 +2,7 @@ package magicalne.github.io.trade;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
-import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.HttpRequestEncoder;
@@ -24,7 +24,7 @@ public class BitMexHttpRequestEncoder extends HttpRequestEncoder {
   private float headersEncodedSizeAccumulator = 256;
 
   ByteBuf encode(DefaultFullHttpRequest req) throws Exception {
-    ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer((int) headersEncodedSizeAccumulator);
+    ByteBuf buf = UnpooledByteBufAllocator.DEFAULT.directBuffer((int) headersEncodedSizeAccumulator);
 
     // Encode the message.
     encodeInitialLine(buf, req);

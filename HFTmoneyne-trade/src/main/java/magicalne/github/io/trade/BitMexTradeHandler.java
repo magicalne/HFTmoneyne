@@ -2,7 +2,6 @@ package magicalne.github.io.trade;
 
 import com.google.common.base.Strings;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.http.*;
 import lombok.extern.slf4j.Slf4j;
@@ -70,11 +69,10 @@ public class BitMexTradeHandler extends TradeHandler {
     sendRequest(req);
   }
 
-  public ChannelFuture sendRequest(Object req) {
-    if (invalidate()) return null;
+  public void sendRequest(Object req) {
+    if (invalidate()) return;
     if (this.ctx != null && ctx.channel().isActive()) {
-      return ctx.writeAndFlush(req);
+      ctx.writeAndFlush(req, ctx.voidPromise());
     }
-    return null;
   }
 }

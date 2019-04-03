@@ -10,10 +10,10 @@ import org.jetbrains.annotations.NotNull;
 @Data
 public class OrderBookEntry implements Marshallable {
   private String symbol;
-  private long id;
+  private volatile long id;
   private SideEnum side;
-  private int size;
-  private double price;
+  private volatile int size;
+  private volatile double price;
 
   public OrderBookEntry() {
   }

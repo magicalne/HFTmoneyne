@@ -75,7 +75,7 @@ public class OrderRobbery {
     }
     if (sellPrice < lastSell) {
       double askPrice = lastSellPrice + tick;
-      log.info("Rob bid. last sell: {}, now sell: {}, place ask: {}", lastSell, sellPrice, askPrice);
+      log.info("Rob ask. last sell: {}, now sell: {}, place ask: {}", lastSell, sellPrice, askPrice);
       lastSell = sellPrice;
       trade.placeOrder(qty, askPrice, SideEnum.Sell, now);
     } else if (sellPrice > lastSell) {

@@ -10,15 +10,15 @@ import org.jetbrains.annotations.NotNull;
 
 @Data
 public class Order implements Marshallable {
-  private String orderID;
+  private volatile String orderID;
   private String clOrdID;
   private String clOrdLinkID;
   private long account;
   private String symbol;
   private SideEnum side;
   private int simpleOrderQty;
-  private int orderQty;
-  private double price;
+  private volatile int orderQty;
+  private volatile double price;
   private int displayQty;
   private double stopPx;
   private double pegOffsetValue;
@@ -35,9 +35,9 @@ public class Order implements Marshallable {
   private boolean workingIndicator;
   private String ordRejReason;
   private int simpleLeavesQty;
-  private int leavesQty;
+  private volatile int leavesQty;
   private int simpleCumQty;
-  private int cumQty;
+  private volatile int cumQty;
   private double avgPx;
   private String multiLegReportingType;
   private String text;
@@ -55,7 +55,7 @@ public class Order implements Marshallable {
 //    this.simpleOrderQty = wire.read(() -> "simpleOrderQty").int32();
     ValueIn read = wire.read(() -> "orderQty");
     this.orderQty = read.isNull() ? -1 : read.int32();
-    read= wire.read(() -> "price");
+    read = wire.read(() -> "price");
     this.price = read.isNull() ? -1 : read.float64();
 //    this.displayQty = wire.read(() -> "displayQty").int32();
 //    this.stopPx = wire.read(() -> "stopPx").float64();
@@ -121,6 +121,42 @@ public class Order implements Marshallable {
     wire.write(() -> "text").text(text);
     wire.write(() -> "transactTime").text(transactTime);
     wire.write(() -> "timestamp").text(timestamp);
+  }
+
+  public void copyFrom(Order order) {
+    this.orderID = order.getOrderID();
+    this.clOrdID = order.getClOrdID();
+    this.clOrdLinkID = order.getClOrdLinkID();
+    this.account = order.getAccount();
+    this.symbol = order.getSymbol();
+    this.side = order.getSide();
+    this.simpleOrderQty = order.getSimpleOrderQty();
+    this.orderQty = order.getOrderQty();
+    this.price = order.getPrice();
+    this.displayQty = order.getDisplayQty();
+    this.stopPx = order.getStopPx();
+    this.pegOffsetValue = order.getPegOffsetValue();
+    this.pegPriceType = order.getPegPriceType();
+    this.currency = order.getCurrency();
+    this.settleCurrency = order.getSettleCurrency();
+    this.ordType = order.getOrdType();
+    this.timeInForce = order.getTimeInForce();
+    this.execInst = order.getExecInst();
+    this.contingencyType = order.getContingencyType();
+    this.exDestination = order.getExDestination();
+    this.ordStatus = order.getOrdStatus();
+    this.triggered = order.getTriggered();
+    this.workingIndicator = order.isWorkingIndicator();
+    this.ordRejReason = order.getOrdRejReason();
+    this.simpleLeavesQty = order.getSimpleLeavesQty();
+    this.leavesQty = order.getLeavesQty();
+    this.simpleCumQty = order.getSimpleCumQty();
+    this.cumQty = order.getCumQty();
+    this.avgPx = order.getAvgPx();
+    this.multiLegReportingType = order.getMultiLegReportingType();
+    this.text = order.getText();
+    this.transactTime = order.getTransactTime();
+    this.timestamp = order.getTimestamp();
   }
 
   public void updateFrom(Order order) {

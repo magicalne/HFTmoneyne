@@ -5,6 +5,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollSocketChannel;
@@ -106,7 +107,9 @@ public class BitMexTradeService {
       if (bootstrap.config().group() == null) {
         bootstrap.group(workerGroup)
           .channel(channelClass)
-          .handler(initializer);
+          .handler(initializer)
+          .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+          .option(ChannelOption.TCP_NODELAY, true);
       }
     } catch (URISyntaxException e) {
       throw new IOException(e);
@@ -126,24 +129,20 @@ public class BitMexTradeService {
         }
         if (byteBuf != null) {
           ByteBuf duplicate = byteBuf.duplicate().retain(2);
-          log.info("before original ref cnt: {}, duplicate ref cnt: {}", byteBuf.refCnt(), duplicate.refCnt());
-          this.initializer.sendRequest(duplicate).addListener(future -> {
-            log.info("after original ref cnt: {}, duplicate ref cnt: {}", byteBuf.refCnt(), duplicate.refCnt());
-          });
+          this.initializer.sendRequest(duplicate);
           return;
         }
       }
       DefaultFullHttpRequest req = createPlaceOrderRequest(price, qty, side);
       ByteBuf byteBuf = encoder.encode(req);
-      initializer.sendRequest(byteBuf.retain()).addListener(future -> {
-        if (future.isSuccess()) {
-          log.info("ref count: {}", byteBuf.refCnt());
-        }
-      });
+      initializer.sendRequest(byteBuf.retain());
     } catch (Exception e) {
       log.error("Encode failed", e);
     } finally {
       log.info("Place order cost: {}ns", System.nanoTime() - ns);
+      if (qty == this.qty && Math.abs(this.price - price) > tick * 5) {
+        rebalanceCache(price);
+      }
     }
   }
 
@@ -192,7 +191,8 @@ public class BitMexTradeService {
     log.info("Cache set up!");
   }
 
-  public void rebalanceCache(double rebalancePrice) throws Exception {
+  public void rebalanceCache(double rebalancePrice) {
+    log.info("Rebalance around new price: {}.", rebalancePrice);
     double delta = rebalancePrice - price;
     long deltaLong = (long) (delta * scale);
     long minKey = ((long) ((price - (size - 1) * tick) * scale));
@@ -209,18 +209,23 @@ public class BitMexTradeService {
         }
         ByteBuf oldBuf = bidCache.remove(key);
         double newPrice = newKey * 1.0d / scale;
-        if (oldBuf != null) {
-          DefaultFullHttpRequest req = createPlaceOrderRequest(newPrice, qty, SideEnum.Buy);
-          bidCache.putIfAbsent(newKey, encoder.encode(req));
-        }
-        oldBuf = askCache.remove(key);
-        if (oldBuf != null) {
-          DefaultFullHttpRequest req = createPlaceOrderRequest(newPrice, qty, SideEnum.Sell);
-          askCache.putIfAbsent(newKey, encoder.encode(req));
+        try {
+          if (oldBuf != null) {
+            DefaultFullHttpRequest req = createPlaceOrderRequest(newPrice, qty, SideEnum.Buy);
+            bidCache.putIfAbsent(newKey, encoder.encode(req));
+          }
+          oldBuf = askCache.remove(key);
+          if (oldBuf != null) {
+            DefaultFullHttpRequest req = createPlaceOrderRequest(newPrice, qty, SideEnum.Sell);
+            askCache.putIfAbsent(newKey, encoder.encode(req));
+          }
+        } catch (Exception e) {
+          log.error("Failed to encode due to: ", e);
         }
       }
       this.price = rebalancePrice;
     }
+    log.info("Rebalance successfully.");
   }
 
   public int getBidCacheSize() {

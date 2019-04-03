@@ -7,27 +7,27 @@ import magicalne.github.io.bitmex.signal.OrderRobbery;
 import magicalne.github.io.trade.BitMexTradeService;
 import magicalne.github.io.wire.bitmex.OrderBookEntry;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 
 @Slf4j
 public class Application {
   public static void main(String[] args) throws Exception {
     String symbol = "XBTUSD";
-    String apiKey = "b8nU8IJ6YhXdMGCws4FlpN-x";
-    String apiSecret = "CqomC-BvhHvFbX5tX3Ztxf7tFN7ZvdELE5pqXPwqEHrXW5OM";
-    String url = "https://testnet.bitmex.com";
+//    String apiKey = "b8nU8IJ6YhXdMGCws4FlpN-x";
+//    String apiSecret = "CqomC-BvhHvFbX5tX3Ztxf7tFN7ZvdELE5pqXPwqEHrXW5OM";
+    String apiKey = "b8Zl6dW6qv9TqucBWw5es3B5";
+    String apiSecret = "ytkJ7ii0dz0p1UAx5LM4Zr53Sg7SND1mwhk0_UW5pW-NXkNv";
+    String url = "https://www.bitmex.com";
     int scale = 10;
     double tick = 0.5;
-    int qty = 20;
+    int qty = 100;
 
     BitmexMarket market = new BitmexMarket(symbol, apiKey, apiSecret, 5000);
     market.createWSConnection();
     Thread.sleep(10000);
     OrderBookEntry bestBid;
     while (true) {
-      bestBid = market.getBestBid();
-      if (bestBid != null) {
+      if (market.ready()) {
+        bestBid = market.getBestBid();
         break;
       }
     }

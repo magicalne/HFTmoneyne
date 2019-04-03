@@ -12,8 +12,8 @@ public class TradeEntry implements Marshallable {
   private String timestamp;
   private String symbol;
   private SideEnum side;
-  private int size;
-  private double price;
+  private volatile int size;
+  private volatile double price;
   private TickDirectionEnum tickDirection;
   private String trdMatchID;
   private long grossValue;
