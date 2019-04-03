@@ -33,7 +33,9 @@ public class LocalOrderStore {
             array[index - 1] = target;
             index --;
           } else {
-            target.updateFrom(o);
+            synchronized (array[i]) {
+              target.updateFrom(o);
+            }
           }
           break;
         }

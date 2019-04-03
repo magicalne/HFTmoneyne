@@ -310,4 +310,8 @@ public class BitmexMarket {
   public boolean ready() {
     return !buildingOrderBook && !buildingTrade && !buildingPosition;
   }
+
+  public String printOrderBook() {
+    return orderBook.toString();
+  }
 }

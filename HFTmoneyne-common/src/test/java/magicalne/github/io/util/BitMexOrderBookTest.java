@@ -90,6 +90,27 @@ public class BitMexOrderBookTest {
 
   }
 
+  @Test
+  public void test() {
+    init();
+    OrderBookEntry entry = new OrderBookEntry();
+    entry.setId(0);
+    entry.setSide(SideEnum.Buy);
+    test.delete(Collections.singletonList(entry));
+
+    entry.setId(24);
+    entry.setSide(SideEnum.Sell);
+    test.delete(Collections.singletonList(entry));
+    System.out.println(test.toString());
+
+    entry.setId(-1);
+    entry.setSide(SideEnum.Sell);
+    entry.setPrice(2999.5);
+    test.insert(Collections.singletonList(entry));
+    System.out.println(test.toString());
+
+  }
+
   private void init() {
     double price = 3000;
     double tick = 0.5;

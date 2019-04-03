@@ -91,9 +91,9 @@ public class BitMexOrderBook {
 
   private void replaceWith(OrderBookEntry e, OrderBookEntry[] array) {
     for (int i = 0; i < size; i++) {
-      OrderBookEntry bid = array[i];
-      if (bid.getId() == e.getId()) {
-        bid.setSize(e.getSize());
+      OrderBookEntry entry = array[i];
+      if (entry.getId() == e.getId()) {
+        entry.setSize(e.getSize());
         break;
       }
     }
@@ -121,7 +121,7 @@ public class BitMexOrderBook {
         tmp.setId(inserted.getId());
         tmp.setSize(inserted.getSize());
         tmp.setPrice(inserted.getPrice());
-        System.arraycopy(array, i, array, i + 1, index - i - 1);
+        System.arraycopy(array, i, array, i + 1, index - i);
         array[i] = tmp;
         return;
       }
@@ -133,9 +133,12 @@ public class BitMexOrderBook {
 
   @Override
   public String toString() {
-    return "BitMexOrderBook{" +
-      "\nbids=" + Arrays.toString(bids) +
-      ",\nasks=" + Arrays.toString(asks) +
-      '}';
+    StringBuilder stringBuilder = new StringBuilder();
+    stringBuilder.append("bid, \t ask\n");
+    for (int i = 0; i < size; i ++) {
+      stringBuilder.append(bids[i].getSize()).append(" ").append(bids[i].getPrice()).append('|')
+        .append(asks[i].getPrice()).append(" ").append(asks[i].getSize()).append("\n");
+    }
+    return stringBuilder.toString();
   }
 }
