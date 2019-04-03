@@ -172,7 +172,6 @@ public class BitmexMarket {
     switch (action) {
       case partial:
         buildingPosition = true;
-        positions.clear();
         for (Position position : positions) {
           if (position.getSymbol().equals(symbol)) {
             this.position = position;
