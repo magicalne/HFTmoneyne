@@ -99,14 +99,17 @@ public class CapitalWings {
     OrderBookEntry bestBid = market.getBestBid();
     OrderBookEntry bestAsk = market.getBestAsk();
     if (bestBid == null || bestAsk == null) return;
+    long bestBidPriceLong = (long) (bestBid.getPrice() * scale);
+    long bestAskPriceLong = (long) (bestAsk.getPrice() * scale);
     Order[] orders = market.getOrders();
     int index = market.getOrderArrayIndex();
     if (orders != null) {
       for (int i = 0; i < index; i ++) {
         Order order = orders[i];
+        long orderPriceLong = (long) (order.getPrice() * scale);
         if (order.getOrdStatus() == OrderStatus.PartiallyFilled || order.getOrdStatus() == OrderStatus.New) {
-          if ((order.getSide() == SideEnum.Buy && order.getPrice() < bestBid.getPrice()) ||
-            (order.getSide() == SideEnum.Sell && order.getPrice() > bestAsk.getPrice()) ||
+          if ((order.getSide() == SideEnum.Buy && orderPriceLong < bestBidPriceLong) ||
+            (order.getSide() == SideEnum.Sell && orderPriceLong > bestAskPriceLong) ||
             (market.getPosition().getCurrentQty() == 0 && order.getOrderQty() != qty)) {
             ORDER_WRAPPER.setValue(order.getOrderID());
             boolean success = cancelOrderRecords.putIfAbsent(ORDER_WRAPPER, System.currentTimeMillis());
