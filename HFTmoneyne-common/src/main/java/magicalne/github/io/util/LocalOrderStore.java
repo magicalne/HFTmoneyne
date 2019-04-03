@@ -33,9 +33,7 @@ public class LocalOrderStore {
             array[index - 1] = target;
             index --;
           } else {
-            synchronized (array[i]) {
-              target.updateFrom(o);
-            }
+            target.updateFrom(o);
           }
           break;
         }
@@ -47,6 +45,8 @@ public class LocalOrderStore {
     for (int i = 0; i < index; i ++) {
       Order target = array[i];
       if (target.getOrderID().equals(orderId)) {
+        target.setOrderID("");
+        target.setOrdStatus(null);
         array[i] = array[index - 1];
         array[index - 1] = target;
         index --;

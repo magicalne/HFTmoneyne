@@ -65,8 +65,8 @@ public class CapitalWings {
     int index = market.getOrderArrayIndex();
     for (int i = 0; i < index; i ++) {
       Order order = orders[i];
-      if (order.getOrdStatus() == OrderStatus.New ||
-        order.getOrdStatus() == OrderStatus.PartiallyFilled) {
+      if (order.getOrdStatus() != null &&
+        (order.getOrdStatus() == OrderStatus.New || order.getOrdStatus() == OrderStatus.PartiallyFilled)) {
         if (balance > balanceLevel && order.getSide() == SideEnum.Sell && position.getCurrentQty() <= 0) {
           long longPrice = (long) (order.getPrice() * scale);
           if (longPrice == bestAskLong) {
@@ -107,7 +107,8 @@ public class CapitalWings {
       for (int i = 0; i < index; i ++) {
         Order order = orders[i];
         long orderPriceLong = (long) (order.getPrice() * scale);
-        if (order.getOrdStatus() == OrderStatus.PartiallyFilled || order.getOrdStatus() == OrderStatus.New) {
+        if (order.getOrdStatus() != null &&
+          (order.getOrdStatus() == OrderStatus.PartiallyFilled || order.getOrdStatus() == OrderStatus.New)) {
           if ((order.getSide() == SideEnum.Buy && orderPriceLong < bestBidPriceLong) ||
             (order.getSide() == SideEnum.Sell && orderPriceLong > bestAskPriceLong)) {
             ORDER_WRAPPER.setValue(order.getOrderID());
