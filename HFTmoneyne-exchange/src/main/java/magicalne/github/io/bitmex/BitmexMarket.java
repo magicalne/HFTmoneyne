@@ -309,6 +309,6 @@ public class BitmexMarket {
   }
 
   public boolean ready() {
-    return !buildingOrderBook && !buildingTrade;
+    return !buildingOrderBook && !buildingTrade && !buildingPosition;
   }
 }
