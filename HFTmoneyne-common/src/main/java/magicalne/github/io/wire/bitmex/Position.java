@@ -25,7 +25,7 @@ public class Position implements Marshallable {
   private String timestamp;
   private double lastPrice;
   private long lastValue;
-  private int currentQty;
+  private volatile int currentQty;
   private double liquidationPrice;
 
   @Override

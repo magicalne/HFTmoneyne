@@ -143,10 +143,14 @@ public class CapitalWings {
         if (order.getSide() == SideEnum.Buy) {
           if (priceLong == bestBidLong) {
             bestBidLeavesQty += order.getLeavesQty();
+            log.info("bid order -> orderId: {}, price: {}, current qty: {}, cum qty: {}, leaves qty: {}",
+              order.getOrderID(), order.getPrice(), order.getOrderQty(), order.getCumQty(), order.getLeavesQty());
           }
         } else {
           if (priceLong == bestAskLong) {
             bestAskLeavesQty += order.getLeavesQty();
+            log.info("ask order -> orderId: {}, price: {}, current qty: {}, cum qty: {}, leaves qty: {}",
+              order.getOrderID(), order.getPrice(), order.getOrderQty(), order.getCumQty(), order.getLeavesQty());
           }
         }
       }
