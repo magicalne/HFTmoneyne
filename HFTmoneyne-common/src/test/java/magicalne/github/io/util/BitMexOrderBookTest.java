@@ -81,12 +81,13 @@ public class BitMexOrderBookTest {
     entry.setId(24);
     entry.setSide(SideEnum.Sell);
     test.delete(Collections.singletonList(entry));
-
+    System.out.println(test.toString());
     entry.setPrice(2900);
     entry.setSize(11);
     test.insert(Collections.singletonList(entry));
     OrderBookEntry bestAsk = test.getBestAsk();
     assertEquals(2900, bestAsk.getPrice(), 0.01);
+
   }
 
   private void init() {

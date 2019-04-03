@@ -38,9 +38,9 @@ public class BitMexOrderBook {
     int askArrayIndex = 0;
     for (OrderBookEntry e : entries) {
       if (e.getSide() == SideEnum.Buy) {
-        bids[bidArrayIndex ++] = e;
+        bids[bidArrayIndex++] = e;
       } else {
-        asks[askArrayIndex ++] = e;
+        asks[askArrayIndex++] = e;
       }
     }
     Arrays.sort(bids, Comparator.comparingDouble(OrderBookEntry::getPrice).reversed());
@@ -68,13 +68,11 @@ public class BitMexOrderBook {
   public void delete(List<OrderBookEntry> entries) {
     for (OrderBookEntry e : entries) {
       if (e.getSide() == SideEnum.Buy) {
-        if (delete(e, bids, bidDeleteIndex)) {
-          this.bidDeleteIndex --;
-        }
+        delete(e, bids, bidDeleteIndex);
+        this.bidDeleteIndex--;
       } else {
-        if (delete(e, asks, askDeleteIndex)) {
-          this.askDeleteIndex --;
-        }
+        delete(e, asks, askDeleteIndex);
+        this.askDeleteIndex--;
       }
     }
   }
@@ -82,19 +80,17 @@ public class BitMexOrderBook {
   public void insert(List<OrderBookEntry> entries) {
     for (OrderBookEntry e : entries) {
       if (e.getSide() == SideEnum.Buy) {
-        if (insert(e, bids, false, bidDeleteIndex)) {
-          this.bidDeleteIndex ++;
-        }
+        insert(e, bids, false, bidDeleteIndex);
+        this.bidDeleteIndex++;
       } else {
-        if (insert(e, asks, true, askDeleteIndex)) {
-          this.askDeleteIndex ++;
-        }
+        insert(e, asks, true, askDeleteIndex);
+        this.askDeleteIndex++;
       }
     }
   }
 
   private void replaceWith(OrderBookEntry e, OrderBookEntry[] array) {
-    for (int i = 0; i < size; i ++) {
+    for (int i = 0; i < size; i++) {
       OrderBookEntry bid = array[i];
       if (bid.getId() == e.getId()) {
         bid.setSize(e.getSize());
@@ -103,22 +99,21 @@ public class BitMexOrderBook {
     }
   }
 
-  private boolean delete(OrderBookEntry e, OrderBookEntry[] array, int index) {
-    for (int i = 0; i < index; i ++) {
+  private void delete(OrderBookEntry e, OrderBookEntry[] array, int index) {
+    for (int i = 0; i < index; i++) {
       if (array[i].getId() == e.getId()) {
         OrderBookEntry deleted = array[i];
         System.arraycopy(array, i + 1, array, i, index - i - 1);
         array[index - 1] = deleted;
         deleted.setId(-1L);
         deleted.setPrice(-1);
-        return true;
+        break;
       }
     }
-    return false;
   }
 
-  private boolean insert(OrderBookEntry inserted, OrderBookEntry[] array, boolean ascending, int index) {
-    for (int i = 0; i < index; i ++) {
+  private void insert(OrderBookEntry inserted, OrderBookEntry[] array, boolean ascending, int index) {
+    for (int i = 0; i < index; i++) {
       OrderBookEntry e = array[i];
       boolean insertable = ascending ? inserted.getPrice() < e.getPrice() : inserted.getPrice() > e.getPrice();
       if (insertable) {
@@ -128,10 +123,19 @@ public class BitMexOrderBook {
         tmp.setPrice(inserted.getPrice());
         System.arraycopy(array, i, array, i + 1, index - i - 1);
         array[i] = tmp;
-        return true;
+        return;
       }
     }
-    return false;
+    array[index].setPrice(inserted.getPrice());
+    array[index].setId(inserted.getId());
+    array[index].setSize(inserted.getSize());
   }
 
+  @Override
+  public String toString() {
+    return "BitMexOrderBook{" +
+      "\nbids=" + Arrays.toString(bids) +
+      ",\nasks=" + Arrays.toString(asks) +
+      '}';
+  }
 }
