@@ -20,8 +20,8 @@ public class CapitalWings {
   private final ObjectPool<StringWrapper> cancelOrderRecords;
   private final ObjectPool<LongWrapper> placeBidOrderRecords;
   private final ObjectPool<LongWrapper> placeAskOrderRecords;
-  public static final StringWrapper ORDER_WRAPPER = new StringWrapper();
-  public static final LongWrapper LONG_WRAPPER = new LongWrapper();
+  private static final StringWrapper ORDER_WRAPPER = new StringWrapper();
+  private static final LongWrapper LONG_WRAPPER = new LongWrapper();
 
   public CapitalWings(BitmexMarket market, BitMexTradeService trade, int qty, double tick, int scale)
     throws InstantiationException, IllegalAccessException {
@@ -30,11 +30,11 @@ public class CapitalWings {
     this.qty = qty;
     this.tick = tick;
     this.scale = scale;
-    cancelOrderRecords = new ObjectPool<>(100, 2000, StringWrapper.class);
+    cancelOrderRecords = new ObjectPool<>(100, 5000, StringWrapper.class);
     cancelOrderRecords.applyUpdaterFunc((o1, o2) -> o1.setValue(o2.getValue()));
-    placeBidOrderRecords = new ObjectPool<>(100, 2000, LongWrapper.class);
+    placeBidOrderRecords = new ObjectPool<>(100, 5000, LongWrapper.class);
     placeBidOrderRecords.applyUpdaterFunc((o1, o2) -> o1.setValue(o2.getValue()));
-    placeAskOrderRecords = new ObjectPool<>(100, 2000, LongWrapper.class);
+    placeAskOrderRecords = new ObjectPool<>(100, 5000, LongWrapper.class);
     placeAskOrderRecords.applyUpdaterFunc((o1, o2) -> o1.setValue(o2.getValue()));
   }
 
@@ -44,7 +44,6 @@ public class CapitalWings {
         cancelRiskyOrder();
         cancelOldOrders();
         placeNewOrder();
-        cleanOrders();
       } catch (Exception e) {
         log.error("Exception happened in position management phase.", e);
       }
@@ -172,23 +171,4 @@ public class CapitalWings {
     placeBidOrderRecords.cleanTimeoutElements(now);
   }
 
-  private void cleanOrders() {
-    Position position = market.getPosition();
-    int currentQty = position == null ? 0 : position.getCurrentQty();
-    Order[] orders = market.getOrders();
-    int index = market.getOrderArrayIndex();
-    if (orders != null) {
-      for (int i = 0; i < index; i++) {
-        Order order = orders[i];
-        if (order.getOrdStatus() == OrderStatus.Canceled && order.getCumQty() == 0) {
-          market.removeOrder(order.getOrderID());
-        }
-        if (order.getOrdStatus() == OrderStatus.Filled ||
-          order.getOrdStatus() == OrderStatus.Canceled &&
-            currentQty == 0) {
-          market.removeOrder(order.getOrderID());
-        }
-      }
-    }
-  }
 }

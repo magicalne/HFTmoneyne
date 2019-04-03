@@ -30,7 +30,7 @@ public class Order implements Marshallable {
   private String execInst;
   private String contingencyType;
   private String exDestination;
-  private OrderStatus ordStatus;
+  private volatile OrderStatus ordStatus;
   private String triggered;
   private boolean workingIndicator;
   private String ordRejReason;

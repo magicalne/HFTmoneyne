@@ -1,6 +1,7 @@
 package magicalne.github.io.util;
 
 import magicalne.github.io.wire.bitmex.Order;
+import magicalne.github.io.wire.bitmex.OrderStatus;
 
 import java.util.List;
 
@@ -27,7 +28,13 @@ public class LocalOrderStore {
       for (int i = 0; i < index; i ++) {
         Order target = array[i];
         if (target.getOrderID().equals(o.getOrderID())) {
-          target.updateFrom(o);
+          if (o.getOrdStatus() == OrderStatus.Filled || o.getOrdStatus() == OrderStatus.Canceled) {
+            array[i] = array[index - 1];
+            array[index - 1] = target;
+            index --;
+          } else {
+            target.updateFrom(o);
+          }
           break;
         }
       }

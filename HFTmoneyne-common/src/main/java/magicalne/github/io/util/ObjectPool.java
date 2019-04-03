@@ -38,12 +38,13 @@ public class ObjectPool<T> {
   }
 
   public boolean putIfAbsent(T t, long createAt) {
-    popOutOldValues();
     if (index == 0) {
       updaterFunc.accept((T) array[index].t, t);
       array[0].createAt = createAt;
       index ++;
       return true;
+    } else if (index == size) {
+      return false;
     } else {
       boolean exist = false;
       for (int i = 0; i < index; i ++) {

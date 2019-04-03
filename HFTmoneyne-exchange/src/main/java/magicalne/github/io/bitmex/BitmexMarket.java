@@ -65,7 +65,7 @@ public class BitmexMarket {
     this.hashFunction = Utils.bitmexSignatureHashFunction(accessSecret);
 
     this.buildingOrder = true;
-    this.localOrderStore = new LocalOrderStore(50);
+    this.localOrderStore = new LocalOrderStore(100);
 
     this.buildingPosition = true;
   }
@@ -302,10 +302,6 @@ public class BitmexMarket {
 
   public int getOrderArrayIndex() {
     return localOrderStore.getIndex();
-  }
-
-  public void removeOrder(String orderId) {
-    localOrderStore.delete(orderId);
   }
 
   public Position getPosition() {
