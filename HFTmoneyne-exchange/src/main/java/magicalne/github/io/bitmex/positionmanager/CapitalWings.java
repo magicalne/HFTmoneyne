@@ -106,7 +106,8 @@ public class CapitalWings {
         Order order = orders[i];
         if (order.getOrdStatus() == OrderStatus.PartiallyFilled || order.getOrdStatus() == OrderStatus.New) {
           if ((order.getSide() == SideEnum.Buy && order.getPrice() < bestBid.getPrice()) ||
-            (order.getSide() == SideEnum.Sell && order.getPrice() > bestAsk.getPrice())) {
+            (order.getSide() == SideEnum.Sell && order.getPrice() > bestAsk.getPrice()) ||
+            (market.getPosition().getCurrentQty() == 0 && order.getOrderQty() != qty)) {
             ORDER_WRAPPER.setValue(order.getOrderID());
             boolean success = cancelOrderRecords.putIfAbsent(ORDER_WRAPPER, System.currentTimeMillis());
             if (success) {
@@ -143,14 +144,10 @@ public class CapitalWings {
         if (order.getSide() == SideEnum.Buy) {
           if (priceLong == bestBidLong) {
             bestBidLeavesQty += order.getLeavesQty();
-            log.info("bid order -> orderId: {}, price: {}, current qty: {}, cum qty: {}, leaves qty: {}",
-              order.getOrderID(), order.getPrice(), order.getOrderQty(), order.getCumQty(), order.getLeavesQty());
           }
         } else {
           if (priceLong == bestAskLong) {
             bestAskLeavesQty += order.getLeavesQty();
-            log.info("ask order -> orderId: {}, price: {}, current qty: {}, cum qty: {}, leaves qty: {}",
-              order.getOrderID(), order.getPrice(), order.getOrderQty(), order.getCumQty(), order.getLeavesQty());
           }
         }
       }
