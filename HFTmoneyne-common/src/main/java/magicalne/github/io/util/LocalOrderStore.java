@@ -47,6 +47,7 @@ public class LocalOrderStore {
       if (target.getOrderID().equals(orderId)) {
         target.setOrderID("");
         target.setOrdStatus(null);
+        target.setPrice(-1);
         array[i] = array[index - 1];
         array[index - 1] = target;
         index --;
