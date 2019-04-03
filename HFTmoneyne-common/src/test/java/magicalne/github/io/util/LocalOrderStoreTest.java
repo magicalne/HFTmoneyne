@@ -43,11 +43,11 @@ public class LocalOrderStoreTest {
     }
     this.test.insert(newOrders);
 
-    newOrders = new LinkedList<>();
+    newOrders.clear();
     for (int i = 0; i < 10; i ++) {
       Order order = new Order();
       order.setOrderID("" + i);
-      order.setOrdStatus(OrderStatus.Filled);
+      order.setOrdStatus(OrderStatus.New);
       newOrders.add(order);
     }
     this.test.update(newOrders);
@@ -58,8 +58,18 @@ public class LocalOrderStoreTest {
     for (int i = 0; i < 10; i ++) {
       Order order = orders[i];
       assertEquals(""+i, order.getOrderID());
-      assertEquals(OrderStatus.Filled, order.getOrdStatus());
+      assertEquals(OrderStatus.New, order.getOrdStatus());
     }
+
+    newOrders.clear();
+    for (int i = 0; i < 10; i ++) {
+      Order order = new Order();
+      order.setOrderID("" + i);
+      order.setOrdStatus(OrderStatus.Filled);
+      newOrders.add(order);
+    }
+    this.test.update(newOrders);
+    assertEquals(0, test.getIndex());
   }
 
   @Test
