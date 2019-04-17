@@ -38,6 +38,7 @@ public abstract class TradeHandler extends SimpleChannelInboundHandler<HttpObjec
   public void channelActive(ChannelHandlerContext ctx) {
     this.ctx = ctx;
     log.info("Connected to server. channel active: {}", ctx.channel().isActive());
+    log.info("pipeline: {}", ctx.pipeline().names());
   }
 
   @Override

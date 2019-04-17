@@ -25,6 +25,7 @@ jar {
 dependencies {
     compile project(':HFTmoneyne-common')
     compile project(':HFTmoneyne-trade')
+    compile project(':HFTmoneyne-market')
     compile group: 'net.openhft', name: 'chronicle-wire', version: '2.17.27'
     compile group: 'com.lmax', name: 'disruptor', version: '3.4.2'
     compile group: 'org.asynchttpclient', name: 'async-http-client', version: '2.8.1'

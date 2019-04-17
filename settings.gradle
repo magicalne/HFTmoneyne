@@ -3,4 +3,5 @@ include 'HFTmoneyne-exchange'
 include 'HFTmoneyne-httpclient'
 include 'HFTmoneyne-trade'
 include 'HFTmoneyne-common'
+include 'HFTmoneyne-market'
 

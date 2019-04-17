@@ -42,14 +42,14 @@ public class BitMexTradeService {
   private final String apiKey;
   private final HashFunction hashFunction;
   private final BitMexHttpRequestEncoder encoder;
-  private final BitMexTradeIHandlerInitializer initializer;
+  private final BitMexTradeHandlerInitializer initializer;
 
   static String host;
   static int port;
 
   private static final int workerThreads = 2;
   private static final ThreadFactory threadFactory =
-    new AffinityThreadFactory("hft-http-client", AffinityStrategies.DIFFERENT_CORE);
+    new AffinityThreadFactory("hft-trade", AffinityStrategies.DIFFERENT_CORE);
   private static EventLoopGroup workerGroup;
   private static Class channelClass;
 
@@ -103,7 +103,7 @@ public class BitMexTradeService {
         }
       }
       BitMexTradeService.port = port;
-      initializer = new BitMexTradeIHandlerInitializer(sslContext, host, port);
+      initializer = new BitMexTradeHandlerInitializer(sslContext, host, port);
       if (bootstrap.config().group() == null) {
         bootstrap.group(workerGroup)
           .channel(channelClass)

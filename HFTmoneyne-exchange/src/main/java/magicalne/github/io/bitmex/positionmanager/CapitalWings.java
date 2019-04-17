@@ -1,17 +1,17 @@
 package magicalne.github.io.bitmex.positionmanager;
 
 import lombok.extern.slf4j.Slf4j;
-import magicalne.github.io.bitmex.BitmexMarket;
+import magicalne.github.io.market.BitMexMarketService;
 import magicalne.github.io.trade.BitMexTradeService;
 import magicalne.github.io.util.LongWrapper;
 import magicalne.github.io.util.ObjectPool;
 import magicalne.github.io.util.StringWrapper;
-import magicalne.github.io.util.Utils;
 import magicalne.github.io.wire.bitmex.*;
 
 @Slf4j
 public class CapitalWings {
-  private final BitmexMarket market;
+  private static final StringWrapper STRING_WRAPPER = new StringWrapper();
+  private final BitMexMarketService market;
   private final BitMexTradeService trade;
   private final int qty;
   private final double tick;
@@ -23,7 +23,7 @@ public class CapitalWings {
   private static final StringWrapper ORDER_WRAPPER = new StringWrapper();
   private static final LongWrapper LONG_WRAPPER = new LongWrapper();
 
-  public CapitalWings(BitmexMarket market, BitMexTradeService trade, int qty, double tick, int scale)
+  public CapitalWings(BitMexMarketService market, BitMexTradeService trade, int qty, double tick, int scale)
     throws InstantiationException, IllegalAccessException {
     this.market = market;
     this.trade = trade;
@@ -32,9 +32,9 @@ public class CapitalWings {
     this.scale = scale;
     cancelOrderRecords = new ObjectPool<>(100, 5000, StringWrapper.class);
     cancelOrderRecords.applyUpdaterFunc((o1, o2) -> o1.setValue(o2.getValue()));
-    placeBidOrderRecords = new ObjectPool<>(100, 5000, LongWrapper.class);
+    placeBidOrderRecords = new ObjectPool<>(100, 9000, LongWrapper.class);
     placeBidOrderRecords.applyUpdaterFunc((o1, o2) -> o1.setValue(o2.getValue()));
-    placeAskOrderRecords = new ObjectPool<>(100, 5000, LongWrapper.class);
+    placeAskOrderRecords = new ObjectPool<>(100, 9000, LongWrapper.class);
     placeAskOrderRecords.applyUpdaterFunc((o1, o2) -> o1.setValue(o2.getValue()));
   }
 
@@ -57,8 +57,8 @@ public class CapitalWings {
 
     long bestBidLong = (long) (bestBid.getPrice() * scale);
     long bestAskLong = (long) (bestAsk.getPrice() * scale);
-    double balance = Utils.volumeBalance(bestBid.getSize(), bestAsk.getSize());
-    final double balanceLevel = 0.6;
+    double tradeBalance = this.market.tradeBalance();
+    final double balanceLevel = 0.3;
     Position position = this.market.getPosition();
     if (position == null) return;
     Order[] orders = market.getOrders();
@@ -67,26 +67,24 @@ public class CapitalWings {
       Order order = orders[i];
       if (order.getOrdStatus() != null &&
         (order.getOrdStatus() == OrderStatus.New || order.getOrdStatus() == OrderStatus.PartiallyFilled)) {
-        if (balance > balanceLevel && order.getSide() == SideEnum.Sell && position.getCurrentQty() <= 0) {
+        if (tradeBalance > balanceLevel && order.getSide() == SideEnum.Sell && position.getCurrentQty() <= 0) {
           long longPrice = (long) (order.getPrice() * scale);
           if (longPrice == bestAskLong) {
-            StringWrapper orderWrapper = new StringWrapper();
-            orderWrapper.setValue(order.getOrderID());
-            boolean success = cancelOrderRecords.putIfAbsent(orderWrapper, System.currentTimeMillis());
+            STRING_WRAPPER.setValue(order.getOrderID());
+            boolean success = cancelOrderRecords.putIfAbsent(STRING_WRAPPER, System.currentTimeMillis());
             if (success) {
               trade.cancelOrder(order.getOrderID());
-              log.info("Cancel ask due to risky situation. balance: {}", balance);
+              log.info("Cancel ask due to risky situation. balance: {}", tradeBalance);
             }
           }
-        } else if (balance < -balanceLevel && order.getSide() == SideEnum.Buy && position.getCurrentQty() >= 0) {
+        } else if (tradeBalance < -balanceLevel && order.getSide() == SideEnum.Buy && position.getCurrentQty() >= 0) {
           long longPrice = (long) (order.getPrice() * scale);
           if (longPrice == bestBidLong) {
-            StringWrapper orderWrapper = new StringWrapper();
-            orderWrapper.setValue(order.getOrderID());
-            boolean success = cancelOrderRecords.putIfAbsent(orderWrapper, System.currentTimeMillis());
+            STRING_WRAPPER.setValue(order.getOrderID());
+            boolean success = cancelOrderRecords.putIfAbsent(STRING_WRAPPER, System.currentTimeMillis());
             if (success) {
               trade.cancelOrder(order.getOrderID());
-              log.info("Cancel bid due to risky situation. balance: {}", balance);
+              log.info("Cancel bid due to risky situation. balance: {}", tradeBalance);
             }
           }
         }
@@ -106,11 +104,12 @@ public class CapitalWings {
     if (orders != null) {
       for (int i = 0; i < index; i ++) {
         Order order = orders[i];
+        Position position = market.getPosition();
         long orderPriceLong = (long) (order.getPrice() * scale);
         if (order.getOrdStatus() != null && orderPriceLong > 0 &&
           (order.getOrdStatus() == OrderStatus.PartiallyFilled || order.getOrdStatus() == OrderStatus.New)) {
-          if ((order.getSide() == SideEnum.Buy && orderPriceLong < bestBidPriceLong) ||
-            (order.getSide() == SideEnum.Sell && orderPriceLong > bestAskPriceLong)) {
+          if ((order.getSide() == SideEnum.Buy && orderPriceLong < bestBidPriceLong && position.getCurrentQty() > 0) ||
+            (order.getSide() == SideEnum.Sell && orderPriceLong > bestAskPriceLong) && position.getCurrentQty() < 0) {
             ORDER_WRAPPER.setValue(order.getOrderID());
             boolean success = cancelOrderRecords.putIfAbsent(ORDER_WRAPPER, System.currentTimeMillis());
             if (success) {

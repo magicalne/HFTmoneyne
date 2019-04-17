@@ -1,10 +1,15 @@
-package magicalne.github.io.bitmex;
+package magicalne.github.io.market;
 
 import com.google.common.hash.HashFunction;
-import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
+import io.netty.channel.*;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import lombok.extern.slf4j.Slf4j;
-import magicalne.github.io.StringEvent;
+import magicalne.github.io.ByteBufferEvent;
 import magicalne.github.io.util.BitMexOrderBook;
 import magicalne.github.io.util.LocalOrderStore;
 import magicalne.github.io.util.MarketTradeData;
@@ -15,30 +20,24 @@ import net.openhft.affinity.AffinityThreadFactory;
 import net.openhft.chronicle.bytes.Bytes;
 import net.openhft.chronicle.wire.Wire;
 import net.openhft.chronicle.wire.WireType;
-import org.asynchttpclient.AsyncHttpClient;
-import org.asynchttpclient.DefaultAsyncHttpClientConfig;
-import org.asynchttpclient.ws.WebSocket;
-import org.asynchttpclient.ws.WebSocketListener;
-import org.asynchttpclient.ws.WebSocketUpgradeHandler;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-
-import static org.asynchttpclient.Dsl.asyncHttpClient;
-import static org.asynchttpclient.Dsl.config;
-import static org.asynchttpclient.Dsl.proxyServer;
 
 @Slf4j
-public class BitmexMarket {
-  private static final String WEBSOCKET_URL = "wss://www.bitmex.com/realtime?subscribe=orderBookL2_25:%s,trade:%s";
+@ChannelHandler.Sharable
+public class BitMexMarketHandler extends SimpleChannelInboundHandler<Object> {
+
   private static final String AUTH = "{\"op\": \"authKeyExpires\", \"args\": [\"%s\", %d, \"%s\"]}";
   private static final String SUB = "{\"op\": \"subscribe\", \"args\": [\"%s:%s\"]}";
-  private static final String VERB = "GET";
-  private static final String PATH = "/realtime";
-  private final String symbol;
+  private static final Bytes<ByteBuffer> BYTES = Bytes.elasticByteBuffer();
+
+  private final MyWebSocketClientHandshaker handShaker;
+  private final String accessSecret;
   private final String accessKey;
-  private final HashFunction hashFunction;
+  private final String symbol;
+  private final Disruptor<ByteBufferEvent> disruptor;
 
   private volatile boolean buildingOrderBook;
   private final BitMexOrderBook orderBook;
@@ -51,11 +50,17 @@ public class BitmexMarket {
 
   private volatile boolean buildingPosition;
   private volatile Position position;
+  private final WireType json;
 
-  public BitmexMarket(String symbol, String accessKey, String accessSecret, int tradeTimeout)
-    throws IllegalAccessException, InstantiationException {
-    this.symbol = symbol;
+  public BitMexMarketHandler(MyWebSocketClientHandshaker handShaker,
+                             String accessKey, String accessSecret, String symbol,
+                             int tradeTimeout) throws IllegalAccessException, InstantiationException {
+    this.handShaker = handShaker;
     this.accessKey = accessKey;
+    this.accessSecret = accessSecret;
+    this.symbol = symbol;
+
+    this.json = WireType.JSON;
 
     this.buildingOrderBook = true;
     this.orderBook = new BitMexOrderBook(25);
@@ -63,77 +68,125 @@ public class BitmexMarket {
     this.buildingTrade = true;
     this.tradeData = new MarketTradeData(tradeTimeout);
 
-    this.hashFunction = Utils.bitmexSignatureHashFunction(accessSecret);
-
     this.buildingOrder = true;
     this.localOrderStore = new LocalOrderStore(100);
 
     this.buildingPosition = true;
+
+    this.disruptor = createDisruptor();
   }
 
-  public void createWSConnection() throws ExecutionException, InterruptedException {
-    Disruptor<StringEvent> disruptor = createDisruptor();
-    DefaultAsyncHttpClientConfig.Builder configBuilder = config()
-      .setWebSocketMaxFrameSize(102400)
-      .setIoThreadsCount(1)
-      .setTcpNoDelay(true)
-      .setThreadFactory(new AffinityThreadFactory("market-ws", AffinityStrategies.DIFFERENT_CORE))
-      .setProxyServer(proxyServer("127.0.0.1", 1087))
-      ;
-    AsyncHttpClient c = asyncHttpClient(configBuilder);
-    String url = String.format(WEBSOCKET_URL, symbol, symbol);
-    log.info(url);
-    c.prepareGet(url)
-      .execute(new WebSocketUpgradeHandler.Builder()
-        .addWebSocketListener(new WebSocketListener() {
-          @Override
-          public void onOpen(WebSocket websocket) {
-            long expires = System.currentTimeMillis() + 5000;
-            String signature = hashFunction.hashString(VERB + PATH + expires, StandardCharsets.UTF_8).toString();
-            String auth = String.format(AUTH, accessKey, expires, signature);
-            websocket.sendTextFrame(auth);
-            String subOrder = String.format(SUB, "order", symbol);
-            websocket.sendTextFrame(subOrder);
-            String subPosition = String.format(SUB, "position", symbol);
-            websocket.sendTextFrame(subPosition);
-            log.info(auth);
-            log.info(subOrder);
-            log.info(subPosition);
-          }
-
-          @Override
-          public void onClose(WebSocket websocket, int code, String reason) {
-            log.info("Socket closed: {}, {}", code, reason);
-            try {
-              disruptor.shutdown();
-              createWSConnection();
-            } catch (ExecutionException | InterruptedException e) {
-              log.error("Reconnect to server with exception.", e);
-              onClose(websocket, code, reason);
-            }
-          }
-
-          @Override
-          public void onError(Throwable t) {
-            log.error("connection may disconnect.", t);
-          }
-
-          @Override
-          public void onTextFrame(String payload, boolean finalFragment, int rsv) {
-            RingBuffer<StringEvent> ringBuffer = disruptor.getRingBuffer();
-            ringBuffer.publishEvent((event, sequence) -> event.setPayload(payload));
-          }
-        }).build()).get();
+  @Override
+  public void channelActive(ChannelHandlerContext ctx) {
+    log.info("pipeline init as: {}", ctx.pipeline().names());
+    handShaker.handshake0(ctx.channel());
   }
 
-  private Disruptor<StringEvent> createDisruptor() {
+  @Override
+  public void channelInactive(ChannelHandlerContext ctx) {
+    log.info("WebSocket Client disconnected!");
+  }
+
+  @Override
+  public void channelUnregistered(ChannelHandlerContext ctx) {
+    ctx.channel().eventLoop().execute(() -> {
+      log.info("Reconnecting...");
+      BitMexMarketService.connect();
+    });
+  }
+
+  @Override
+  public void channelRead0(ChannelHandlerContext ctx, Object msg) {
+    if (msg instanceof FullHttpResponse) {
+      FullHttpResponse res = (FullHttpResponse) msg;
+      handShaker.finishHandshake0(ctx.channel(), res);
+      log.info("WebSocket Client connected!");
+      String subOrderBookL2 = String.format(SUB, "orderBookL2_25", symbol);
+      ctx.writeAndFlush(new TextWebSocketFrame(subOrderBookL2));
+      String subTrade = String.format(SUB, "trade", symbol);
+      ctx.writeAndFlush(new TextWebSocketFrame(subTrade));
+      long expires = System.currentTimeMillis() + 5000;
+      HashFunction hashFunction = Utils.bitmexSignatureHashFunction(accessSecret);
+      String signature = hashFunction.hashString("GET/realtime" + expires, StandardCharsets.UTF_8).toString();
+      String auth = String.format(AUTH, accessKey, expires, signature);
+      ctx.writeAndFlush(new TextWebSocketFrame(auth));
+      String subOrder = String.format(SUB, "order", symbol);
+      ctx.writeAndFlush(subOrder);
+      ctx.writeAndFlush(new TextWebSocketFrame(subOrder));
+      String subPosition = String.format(SUB, "position", symbol);
+      ctx.writeAndFlush(new TextWebSocketFrame(subPosition));
+    } else if (msg instanceof WebSocketFrame) {
+      WebSocketFrame frame = (WebSocketFrame) msg;
+      if (frame instanceof TextWebSocketFrame) {
+        TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
+        this.disruptor.publishEvent((event, sequence) -> event.setByteBuffer(textFrame.content().retain().nioBuffer()));
+      } else if (frame instanceof PongWebSocketFrame) {
+        log.info("WebSocket Client received pong");
+      } else if (frame instanceof CloseWebSocketFrame) {
+        log.info("WebSocket Client received closing");
+      }
+    }
+  }
+
+  @Override
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+    log.error("Exception happened.", cause);
+    ctx.close();
+  }
+
+  public OrderBookEntry getBestBid() {
+    return this.orderBook.getBestBid();
+  }
+
+  public OrderBookEntry getBestAsk() {
+    return this.orderBook.getBestAsk();
+  }
+
+  public double getLastBuyPrice() {
+    return tradeData.getLastBuyPrice();
+  }
+
+  public double getLastSellPrice() {
+    return tradeData.getLastSellPrice();
+  }
+
+  public double tradeBalance() {
+    return tradeData.imbalance();
+  }
+
+  public Order[] getOrders() {
+    return localOrderStore.get();
+  }
+
+  public int getOrderArrayIndex() {
+    return localOrderStore.getIndex();
+  }
+
+  public Position getPosition() {
+    return position;
+  }
+
+  public boolean ready() {
+    return !buildingOrderBook && !buildingTrade && !buildingPosition && !buildingOrder;
+  }
+
+  public String printOrderBook() {
+    return orderBook.toString();
+  }
+
+  private Disruptor<ByteBufferEvent> createDisruptor() {
     AffinityThreadFactory threadFactory =
-      new AffinityThreadFactory("disruptor-consumer", AffinityStrategies.DIFFERENT_CORE);
-    Disruptor<StringEvent> disruptor = new Disruptor<>(StringEvent::new, 1024, threadFactory);
+      new AffinityThreadFactory("disruptor-market-consumer", AffinityStrategies.DIFFERENT_CORE);
+
+    Disruptor<ByteBufferEvent> disruptor = new Disruptor<>(ByteBufferEvent::new, 1024, threadFactory);
     disruptor.handleEventsWith((event, sequence, endOfBatch) -> {
-      String payload = event.getPayload();
-      Wire wire = WireType.JSON.apply(Bytes.fromString(payload));
+      ByteBuffer byteBuffer = event.getByteBuffer();
+      BYTES.clear();
+      BYTES.write(BYTES.writePosition(), byteBuffer, byteBuffer.position(), byteBuffer.limit());
+      BYTES.writePosition(byteBuffer.limit());
+      Wire wire = json.apply(BYTES);
       TableEnum table = wire.read("table").asEnum(TableEnum.class);
+      log.debug("table: {}", table);
       ActionEnum action = wire.read("action").asEnum(ActionEnum.class);
       if (table != null) {
         final String data = "data";
@@ -160,11 +213,11 @@ public class BitmexMarket {
           log.error("Disruptor handler came across an exception.", e);
         }
       }
-      wire.bytes().release();
     });
     disruptor.start();
     return disruptor;
   }
+
 
   private void onEventPosition(ActionEnum action, List<Position> positions) {
     if (action != ActionEnum.partial && buildingPosition) {
@@ -210,8 +263,8 @@ public class BitmexMarket {
       case update:
         localOrderStore.update(orders);
         break;
-        default:
-          break;
+      default:
+        break;
     }
   }
 
@@ -228,8 +281,8 @@ public class BitmexMarket {
       case insert:
         onInsertTradeEntry(trades);
         break;
-        default:
-          log.error("Unknown operation! action: {}, trades: {}", action, trades);
+      default:
+        log.error("Unknown operation! action: {}, trades: {}", action, trades);
     }
   }
 
@@ -256,8 +309,8 @@ public class BitmexMarket {
       case insert:
         onInsertOrderBookEntry(orderBookEntries);
         break;
-        default:
-          log.error("Unknown action!");
+      default:
+        log.error("Unknown action!");
     }
   }
 
@@ -269,50 +322,11 @@ public class BitmexMarket {
     this.orderBook.delete(orderBookEntries);
   }
 
-
-
   private void onUpdateOrderBookEntry(List<OrderBookEntry> orderBookEntries) {
     this.orderBook.update(orderBookEntries);
   }
 
   private void onInsertOrderBookEntry(List<OrderBookEntry> orderBookEntries) {
     this.orderBook.insert(orderBookEntries);
-  }
-
-  public OrderBookEntry getBestBid() {
-    return this.orderBook.getBestBid();
-  }
-
-  public OrderBookEntry getBestAsk() {
-    return this.orderBook.getBestAsk();
-  }
-
-  public double getLastBuyPrice() {
-    return tradeData.getLastBuyPrice();
-  }
-
-  public double getLastSellPrice() {
-    return tradeData.getLastSellPrice();
-  }
-
-
-  public Order[] getOrders() {
-    return localOrderStore.get();
-  }
-
-  public int getOrderArrayIndex() {
-    return localOrderStore.getIndex();
-  }
-
-  public Position getPosition() {
-    return position;
-  }
-
-  public boolean ready() {
-    return !buildingOrderBook && !buildingTrade && !buildingPosition;
-  }
-
-  public String printOrderBook() {
-    return orderBook.toString();
   }
 }

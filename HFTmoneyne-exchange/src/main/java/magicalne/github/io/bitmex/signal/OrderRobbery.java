@@ -1,7 +1,7 @@
 package magicalne.github.io.bitmex.signal;
 
 import lombok.extern.slf4j.Slf4j;
-import magicalne.github.io.bitmex.BitmexMarket;
+import magicalne.github.io.market.BitMexMarketService;
 import magicalne.github.io.trade.BitMexTradeService;
 import magicalne.github.io.wire.bitmex.SideEnum;
 import net.openhft.affinity.AffinityThreadFactory;
@@ -13,7 +13,7 @@ import java.util.concurrent.ThreadFactory;
 
 @Slf4j
 public class OrderRobbery {
-  private final BitmexMarket market;
+  private final BitMexMarketService market;
   private final BitMexTradeService trade;
   private final int qty;
   private final double tick;
@@ -24,7 +24,7 @@ public class OrderRobbery {
   @Contended
   private volatile long lastSell;
 
-  public OrderRobbery(BitmexMarket market, BitMexTradeService trade, int qty, double tick, int scale) {
+  public OrderRobbery(BitMexMarketService market, BitMexTradeService trade, int qty, double tick, int scale) {
     this.market = market;
     this.trade = trade;
     this.qty = qty;

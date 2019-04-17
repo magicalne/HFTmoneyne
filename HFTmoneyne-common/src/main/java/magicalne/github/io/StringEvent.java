@@ -1,4 +1,4 @@
-package magicalne.github.io.bitmex;
+package magicalne.github.io;
 
 public class StringEvent {
   private String payload;

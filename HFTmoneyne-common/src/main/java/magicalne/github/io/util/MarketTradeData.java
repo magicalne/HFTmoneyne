@@ -54,4 +54,17 @@ public class MarketTradeData {
   public double getLastSellPrice() {
     return lastSellPrice;
   }
+
+  public double imbalance() {
+    int buySize = 0;
+    int sellSize = 0;
+    for (int i = 0; i < buyPool.getIndex(); i ++) {
+      buySize += buyPool.get(i).getSize();
+    }
+    for (int i = 0; i < sellPool.getIndex(); i++) {
+      sellSize += sellPool.get(i).getSize();
+    }
+
+    return Utils.volumeBalance(buySize, sellSize);
+  }
 }
