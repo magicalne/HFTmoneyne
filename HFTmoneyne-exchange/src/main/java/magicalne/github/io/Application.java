@@ -12,11 +12,11 @@ import magicalne.github.io.wire.bitmex.OrderBookEntry;
 public class Application {
   public static void main(String[] args) throws Exception {
     String symbol = "XBTUSD";
-    String apiKey = "b8nU8IJ6YhXdMGCws4FlpN-x";
-    String apiSecret = "CqomC-BvhHvFbX5tX3Ztxf7tFN7ZvdELE5pqXPwqEHrXW5OM";
-//    String apiKey = "b8Zl6dW6qv9TqucBWw5es3B5";
-//    String apiSecret = "ytkJ7ii0dz0p1UAx5LM4Zr53Sg7SND1mwhk0_UW5pW-NXkNv";
-    String url = "https://testnet.bitmex.com";
+//    String apiKey = "b8nU8IJ6YhXdMGCws4FlpN-x";
+//    String apiSecret = "CqomC-BvhHvFbX5tX3Ztxf7tFN7ZvdELE5pqXPwqEHrXW5OM";
+    String apiKey = "b8Zl6dW6qv9TqucBWw5es3B5";
+    String apiSecret = "ytkJ7ii0dz0p1UAx5LM4Zr53Sg7SND1mwhk0_UW5pW-NXkNv";
+    String url = "https://www.bitmex.com";
     int scale = 10;
     double tick = 0.5;
     int qty = 50;

@@ -29,7 +29,7 @@ import java.util.concurrent.ThreadFactory;
 
 @Slf4j
 public class BitMexMarketService {
-  private static final String WEBSOCKET_URL = "wss://testnet.bitmex.com/realtime";
+  private static final String WEBSOCKET_URL = "wss://www.bitmex.com/realtime";
 
   private static String host;
   private static int port;

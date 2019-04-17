@@ -29,7 +29,7 @@ public class BitMexTradeHandlerInitializer extends ChannelInitializer<Channel> {
     if (sslContext != null) {
       pipeline.addFirst(sslContext.newHandler(ch.alloc()));
     }
-    pipeline.addFirst(new HttpProxyHandler(new InetSocketAddress("localhost", 1087)));
+//    pipeline.addFirst(new HttpProxyHandler(new InetSocketAddress("localhost", 1087)));
     bitMexTradeHandler = new BitMexTradeHandler(host, port);
     pipeline.addLast(
       new BitMexHttpClientCodec(),

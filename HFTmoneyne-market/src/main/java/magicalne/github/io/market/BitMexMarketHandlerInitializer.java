@@ -31,7 +31,7 @@ public class BitMexMarketHandlerInitializer extends ChannelInitializer<Channel> 
     if (sslContext != null) {
       pipeline.addFirst("ssl", sslContext.newHandler(ch.alloc()));
     }
-    pipeline.addFirst(new HttpProxyHandler(new InetSocketAddress("localhost", 1087)));
+//    pipeline.addFirst(new HttpProxyHandler(new InetSocketAddress("localhost", 1087)));
 
     pipeline.addLast("http", new HttpClientCodec());
     pipeline.addLast(
