@@ -88,7 +88,7 @@ public class BitMexMarketService {
     }
 
     initializer =
-      new BitMexMarketHandlerInitializer(sslCtx, apiKey, apiSecret, symbol, 5000, uri);
+      new BitMexMarketHandlerInitializer(sslCtx, apiKey, apiSecret, symbol, 10000, uri);
     if (bootstrap.config().group() == null) {
       bootstrap.group(workerGroup)
         .channel(channelClass)

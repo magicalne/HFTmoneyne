@@ -58,7 +58,7 @@ public class CapitalWings {
     long bestBidLong = (long) (bestBid.getPrice() * scale);
     long bestAskLong = (long) (bestAsk.getPrice() * scale);
     double tradeBalance = this.market.tradeBalance();
-    final double balanceLevel = 0.3;
+    final double balanceLevel = 0.6;
     Position position = this.market.getPosition();
     if (position == null) return;
     Order[] orders = market.getOrders();
@@ -104,12 +104,11 @@ public class CapitalWings {
     if (orders != null) {
       for (int i = 0; i < index; i ++) {
         Order order = orders[i];
-        Position position = market.getPosition();
         long orderPriceLong = (long) (order.getPrice() * scale);
         if (order.getOrdStatus() != null && orderPriceLong > 0 &&
           (order.getOrdStatus() == OrderStatus.PartiallyFilled || order.getOrdStatus() == OrderStatus.New)) {
-          if ((order.getSide() == SideEnum.Buy && orderPriceLong < bestBidPriceLong && position.getCurrentQty() > 0) ||
-            (order.getSide() == SideEnum.Sell && orderPriceLong > bestAskPriceLong) && position.getCurrentQty() < 0) {
+          if ((order.getSide() == SideEnum.Buy && orderPriceLong < bestBidPriceLong) ||
+            (order.getSide() == SideEnum.Sell && orderPriceLong > bestAskPriceLong)) {
             ORDER_WRAPPER.setValue(order.getOrderID());
             boolean success = cancelOrderRecords.putIfAbsent(ORDER_WRAPPER, System.currentTimeMillis());
             if (success) {
