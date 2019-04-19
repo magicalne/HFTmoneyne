@@ -67,7 +67,7 @@ public class CapitalWings {
         (order.getOrdStatus() == OrderStatus.New || order.getOrdStatus() == OrderStatus.PartiallyFilled)) {
         if (imbalance > balanceLevel && order.getSide() == SideEnum.Sell) {
           long longPrice = (long) (order.getPrice() * scale);
-          if (longPrice >= bestAskLong - topFour) {
+          if (longPrice <= bestAskLong + topFour) {
             STRING_WRAPPER.setValue(order.getOrderID());
             boolean success = cancelOrderRecords.putIfAbsent(STRING_WRAPPER, System.currentTimeMillis());
             if (success) {
@@ -77,7 +77,7 @@ public class CapitalWings {
           }
         } else if (imbalance < -balanceLevel && order.getSide() == SideEnum.Buy) {
           long longPrice = (long) (order.getPrice() * scale);
-          if (longPrice <= bestBidLong + topFour) {
+          if (longPrice >= bestBidLong - topFour) {
             STRING_WRAPPER.setValue(order.getOrderID());
             boolean success = cancelOrderRecords.putIfAbsent(STRING_WRAPPER, System.currentTimeMillis());
             if (success) {
