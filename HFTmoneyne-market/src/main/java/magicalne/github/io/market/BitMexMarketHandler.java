@@ -154,6 +154,10 @@ public class BitMexMarketHandler extends SimpleChannelInboundHandler<Object> {
     return tradeData.imbalance();
   }
 
+  public double imbalance() {
+    return orderBook.imbalance();
+  }
+
   public Order[] getOrders() {
     return localOrderStore.get();
   }

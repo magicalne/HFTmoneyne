@@ -55,6 +55,10 @@ public class BitMexOrderBook {
     return asks[0];
   }
 
+  public double imbalance() {
+    return Utils.volumeBalance(bids[0].getSize(), asks[0].getSize());
+  }
+
   public void update(List<OrderBookEntry> entries) {
     for (OrderBookEntry e : entries) {
       if (e.getSide() == SideEnum.Buy) {

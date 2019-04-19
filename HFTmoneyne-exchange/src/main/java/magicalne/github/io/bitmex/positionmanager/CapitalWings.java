@@ -42,8 +42,8 @@ public class CapitalWings {
     for (;;) {
       try {
         cancelRiskyOrder();
-        cancelOldOrders();
-        placeNewOrder1();
+//        cancelOldOrders();
+//        placeNewOrder1();
       } catch (Exception e) {
         log.error("Exception happened in position management phase.", e);
       }
@@ -57,8 +57,8 @@ public class CapitalWings {
 
     long bestBidLong = (long) (bestBid.getPrice() * scale);
     long bestAskLong = (long) (bestAsk.getPrice() * scale);
-    double tradeBalance = this.market.tradeBalance();
-    final double balanceLevel = 0.6;
+    double imbalance = this.market.imbalance();
+    final double balanceLevel = 0.9;
     Position position = this.market.getPosition();
     if (position == null) return;
     Order[] orders = market.getOrders();
@@ -67,24 +67,24 @@ public class CapitalWings {
       Order order = orders[i];
       if (order.getOrdStatus() != null &&
         (order.getOrdStatus() == OrderStatus.New || order.getOrdStatus() == OrderStatus.PartiallyFilled)) {
-        if (tradeBalance > balanceLevel && order.getSide() == SideEnum.Sell && position.getCurrentQty() <= 0) {
+        if (imbalance > balanceLevel && order.getSide() == SideEnum.Sell && position.getCurrentQty() < 0) {
           long longPrice = (long) (order.getPrice() * scale);
           if (longPrice == bestAskLong) {
             STRING_WRAPPER.setValue(order.getOrderID());
             boolean success = cancelOrderRecords.putIfAbsent(STRING_WRAPPER, System.currentTimeMillis());
             if (success) {
               trade.cancelOrder(order.getOrderID());
-              log.info("Cancel ask due to risky situation. balance: {}", tradeBalance);
+              log.info("Cancel ask due to risky situation. balance: {}", imbalance);
             }
           }
-        } else if (tradeBalance < -balanceLevel && order.getSide() == SideEnum.Buy && position.getCurrentQty() >= 0) {
+        } else if (imbalance < -balanceLevel && order.getSide() == SideEnum.Buy && position.getCurrentQty() > 0) {
           long longPrice = (long) (order.getPrice() * scale);
           if (longPrice == bestBidLong) {
             STRING_WRAPPER.setValue(order.getOrderID());
             boolean success = cancelOrderRecords.putIfAbsent(STRING_WRAPPER, System.currentTimeMillis());
             if (success) {
               trade.cancelOrder(order.getOrderID());
-              log.info("Cancel bid due to risky situation. balance: {}", tradeBalance);
+              log.info("Cancel bid due to risky situation. balance: {}", imbalance);
             }
           }
         }

@@ -37,8 +37,8 @@ public class Application {
     OrderRobbery orderRobbery = new OrderRobbery(market, trade, qty, tick, scale);
     orderRobbery.execute();
 
-//    CapitalWings capitalWings = new CapitalWings(market, trade, qty, tick, scale);
-//    capitalWings.execute();
+    CapitalWings capitalWings = new CapitalWings(market, trade, qty, tick, scale);
+    capitalWings.execute();
     Thread.currentThread().join();
   }
 }

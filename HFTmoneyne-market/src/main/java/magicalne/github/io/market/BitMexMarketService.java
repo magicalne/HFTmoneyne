@@ -122,6 +122,10 @@ public class BitMexMarketService {
     return initializer.getHandler().tradeBalance();
   }
 
+  public double imbalance() {
+    return initializer.getHandler().imbalance();
+  }
+
   public Order[] getOrders() {
     return initializer.getHandler().getOrders();
   }
