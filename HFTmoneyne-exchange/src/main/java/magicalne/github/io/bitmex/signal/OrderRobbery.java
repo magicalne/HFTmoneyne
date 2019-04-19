@@ -19,10 +19,8 @@ public class OrderRobbery {
   private final double tick;
   private final int scale;
 
-  @Contended
-  private volatile long lastBuy;
-  @Contended
-  private volatile long lastSell;
+  private long lastBuy;
+  private long lastSell;
 
   private final ThreadFactory threadFactory = new AffinityThreadFactory("SIGNAL");
   private final ExecutorService executorService = Executors.newSingleThreadExecutor(threadFactory);
