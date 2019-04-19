@@ -5,7 +5,6 @@ import magicalne.github.io.market.BitMexMarketService;
 import magicalne.github.io.trade.BitMexTradeService;
 import magicalne.github.io.wire.bitmex.SideEnum;
 import net.openhft.affinity.AffinityThreadFactory;
-import sun.misc.Contended;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -66,17 +65,17 @@ public class OrderRobbery {
     long sellPrice = ((long) (lastSellPrice * scale));
     if (buyPrice > lastBuy) {
       double bidPrice = lastBuyPrice - tick;
+      trade.placeOrder(qty, bidPrice, SideEnum.Buy, now);
       log.info("Rob bid. last buy: {}, now buy: {}, place bid: {}", lastBuy, buyPrice, bidPrice);
       lastBuy = buyPrice;
-      trade.placeOrder(qty, bidPrice, SideEnum.Buy, now);
     } else if (buyPrice < lastBuy) {
       lastBuy = buyPrice;
     }
     if (sellPrice < lastSell) {
       double askPrice = lastSellPrice + tick;
+      trade.placeOrder(qty, askPrice, SideEnum.Sell, now);
       log.info("Rob ask. last sell: {}, now sell: {}, place ask: {}", lastSell, sellPrice, askPrice);
       lastSell = sellPrice;
-      trade.placeOrder(qty, askPrice, SideEnum.Sell, now);
     } else if (sellPrice > lastSell) {
       lastSell = sellPrice;
     }
