@@ -41,9 +41,8 @@ public class LocalOrderStore {
             array.set(i, array.get(index - 1));
             array.set(index - 1, target);
             index --;
-          } else {
-            target.updateFrom(o);
           }
+          target.updateFrom(o);
           break;
         }
       }
