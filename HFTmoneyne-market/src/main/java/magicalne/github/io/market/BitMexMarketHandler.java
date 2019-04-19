@@ -69,7 +69,7 @@ public class BitMexMarketHandler extends SimpleChannelInboundHandler<Object> {
     this.tradeData = new MarketTradeData(tradeTimeout);
 
     this.buildingOrder = true;
-    this.localOrderStore = new LocalOrderStore(100);
+    this.localOrderStore = new LocalOrderStore(200);
 
     this.buildingPosition = true;
 

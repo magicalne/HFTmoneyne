@@ -24,6 +24,9 @@ public class OrderRobbery {
   @Contended
   private volatile long lastSell;
 
+  private final ThreadFactory threadFactory = new AffinityThreadFactory("SIGNAL");
+  private final ExecutorService executorService = Executors.newSingleThreadExecutor(threadFactory);
+
   public OrderRobbery(BitMexMarketService market, BitMexTradeService trade, int qty, double tick, int scale) {
     this.market = market;
     this.trade = trade;
@@ -46,8 +49,6 @@ public class OrderRobbery {
 
   public void execute() {
     setUp();
-    ThreadFactory threadFactory = new AffinityThreadFactory("SIGNAL");
-    ExecutorService executorService = Executors.newSingleThreadExecutor(threadFactory);
     executorService.submit(() -> {
       for (;;) {
         try {
