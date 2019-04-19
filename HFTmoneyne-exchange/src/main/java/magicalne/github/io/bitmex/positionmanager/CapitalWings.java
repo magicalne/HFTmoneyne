@@ -42,8 +42,7 @@ public class CapitalWings {
     for (;;) {
       try {
         cancelRiskyOrder();
-//        cancelOldOrders();
-//        placeNewOrder1();
+        placeNewOrder1();
       } catch (Exception e) {
         log.error("Exception happened in position management phase.", e);
       }
@@ -58,7 +57,7 @@ public class CapitalWings {
     long bestBidLong = (long) (bestBid.getPrice() * scale);
     long bestAskLong = (long) (bestAsk.getPrice() * scale);
     double imbalance = this.market.imbalance();
-    final double balanceLevel = 0.9;
+    final double balanceLevel = 0.6;
     Position position = this.market.getPosition();
     if (position == null) return;
     Order[] orders = market.getOrders();
@@ -185,38 +184,34 @@ public class CapitalWings {
     long bestBidLong = (long) (bestBidPrice * scale);
 
     Position position = market.getPosition();
+    double imbalance = market.imbalance();
+    double imbalanceLevel = 0.6;
     int currentQty = position == null ? 0: position.getCurrentQty();
-    int bestBidLeavesQty = 0;
-    int bestAskLeavesQty = 0;
     Order[] orders = market.getOrders();
     int index = market.getOrderArrayIndex();
     if (orders != null) {
       for (int i = 0; i < index; i ++) {
         Order order = orders[i];
         long priceLong = (long) (order.getPrice() * scale);
-        if (order.getSide() == SideEnum.Buy) {
-          if (priceLong == bestBidLong) {
-            bestBidLeavesQty += order.getLeavesQty();
-          }
-        } else {
-          if (priceLong == bestAskLong) {
-            bestAskLeavesQty += order.getLeavesQty();
-          }
+        if (currentQty > 0 && imbalance < imbalanceLevel &&
+          order.getSide() == SideEnum.Sell && priceLong == bestAskLong) {
+          return;
+        } else if (currentQty < 0 && imbalance > -imbalanceLevel &&
+          order.getSide() == SideEnum.Buy && priceLong == bestBidLong) {
+          return;
         }
       }
     }
-    if (currentQty > 0 && currentQty > bestAskLeavesQty) {
+    if (currentQty > 0 && imbalance < imbalanceLevel) {
       LONG_WRAPPER.setValue(bestAskLong);
       boolean success = placeAskOrderRecords.putIfAbsent(LONG_WRAPPER, System.currentTimeMillis());
       if (success) {
-        log.info("Place new ask, current qty: {}, best ask leaves qty: {}", currentQty, bestAskLeavesQty);
         trade.placeOrder(qty, bestAskPrice, SideEnum.Sell, ns);
       }
-    } else if (currentQty < 0 && -currentQty > bestBidLeavesQty) {
+    } else if (currentQty < 0 && imbalance > -imbalance) {
       LONG_WRAPPER.setValue(bestBidLong);
       boolean success = placeBidOrderRecords.putIfAbsent(LONG_WRAPPER, System.currentTimeMillis());
       if (success) {
-        log.info("Place new bid, current qty: {}, best bid leaves qty: {}", currentQty, bestBidLeavesQty);
         trade.placeOrder (qty, bestBidPrice, SideEnum.Buy, ns);
       }
     }
