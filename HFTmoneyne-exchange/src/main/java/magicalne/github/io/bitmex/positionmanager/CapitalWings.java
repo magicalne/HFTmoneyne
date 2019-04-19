@@ -186,25 +186,28 @@ public class CapitalWings {
     double imbalanceLevel = 0.6;
     int currentQty = position == null ? 0: position.getCurrentQty();
     Order[] orders = market.getOrders();
+    Order bidOrder = null;
+    Order askOrder = null;
     for (Order order : orders) {
       long priceLong = (long) (order.getPrice() * scale);
       if (order.getSide() == SideEnum.Sell && priceLong == bestAskLong &&
         (order.getOrdStatus() == OrderStatus.New || order.getOrdStatus() == OrderStatus.PartiallyFilled)) {
-        return;
+        askOrder = order;
       }
       if (order.getSide() == SideEnum.Buy && priceLong == bestBidLong &&
         (order.getOrdStatus() == OrderStatus.New || order.getOrdStatus() == OrderStatus.PartiallyFilled)) {
-        return;
+        bidOrder = order;
       }
     }
-    if (currentQty > 0 && imbalance < imbalanceLevel) {
+    if (currentQty > 0 && imbalance < imbalanceLevel && askOrder == null) {
       LONG_WRAPPER.setValue(bestAskLong);
       boolean success = placeAskOrderRecords.putIfAbsent(LONG_WRAPPER, System.currentTimeMillis());
       if (success) {
         trade.placeOrder(qty, bestAskPrice, SideEnum.Sell, ns);
         log.info("Place new ask order.");
       }
-    } else if (currentQty < 0 && imbalance > -imbalance) {
+    }
+    if (currentQty < 0 && imbalance > -imbalance && bidOrder == null) {
       LONG_WRAPPER.setValue(bestBidLong);
       boolean success = placeBidOrderRecords.putIfAbsent(LONG_WRAPPER, System.currentTimeMillis());
       if (success) {
