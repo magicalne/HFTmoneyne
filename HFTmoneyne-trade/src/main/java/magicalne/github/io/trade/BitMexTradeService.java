@@ -128,6 +128,10 @@ public class BitMexTradeService {
       if (byteBuf != null) {
         ByteBuf duplicate = byteBuf.duplicate().retain(2);
         this.initializer.sendRequest(duplicate);
+      } else {
+        DefaultFullHttpRequest req = createPlaceOrderRequest(price, qty, side);
+        byteBuf = encoder.encode(req);
+        this.initializer.sendRequest(byteBuf.retain());
       }
     } catch (Exception e) {
       log.error("Encode failed", e);

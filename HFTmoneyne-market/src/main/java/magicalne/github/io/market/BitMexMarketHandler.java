@@ -331,8 +331,10 @@ public class BitMexMarketHandler extends SimpleChannelInboundHandler<Object> {
     for (OrderBookEntry e : orderBookEntries) {
       if (e.getSide() == SideEnum.Buy && e.getId() == this.orderBook.getBestBid().getId()) {
         this.tradeService.placeOrder(e.getPrice(), SideEnum.Sell, ns);
+        log.info("Rob ask order on {}.", e.getPrice());
       } else if (e.getSide() == SideEnum.Sell && e.getId() == this.orderBook.getBestAsk().getId()) {
         this.tradeService.placeOrder(e.getPrice(), SideEnum.Buy, ns);
+        log.info("Rob bid order on {}.", e.getPrice());
       }
     }
     this.orderBook.delete(orderBookEntries);

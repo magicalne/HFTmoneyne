@@ -29,8 +29,7 @@ public class BitMexMarketTest {
       if (this.test.ready()) {
         System.out.println(this.test.getBestBid().getPrice() + " " + this.test.getBestBid().getSize() + "\r");
         System.out.println(this.test.getBestAsk().getPrice() + " " + this.test.getBestAsk().getSize() + "\r");
-        System.out.println(this.test.getLastBuyPrice() + " " + this.test.getLastSellPrice() + "\r");
-        Thread.sleep(1000);
+        Thread.sleep(2000);
       }
     }
 //    Thread.currentThread().join();
