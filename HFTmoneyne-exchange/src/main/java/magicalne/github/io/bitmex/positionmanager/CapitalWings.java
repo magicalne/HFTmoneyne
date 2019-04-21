@@ -71,7 +71,7 @@ public class CapitalWings {
             boolean success = cancelOrderRecords.putIfAbsent(STRING_WRAPPER, System.currentTimeMillis());
             if (success) {
               trade.cancelOrder(order.getOrderID());
-              log.info("Cancel ask due to risky situation. balance: {}", imbalance);
+              log.info("Cancel ask on {} due to risky situation. balance: {}", order.getPrice(), imbalance);
             }
           }
         } else if (imbalance < -balanceLevel && order.getSide() == SideEnum.Buy) {
@@ -81,7 +81,7 @@ public class CapitalWings {
             boolean success = cancelOrderRecords.putIfAbsent(STRING_WRAPPER, System.currentTimeMillis());
             if (success) {
               trade.cancelOrder(order.getOrderID());
-              log.info("Cancel bid due to risky situation. balance: {}", imbalance);
+              log.info("Cancel bid on {} due to risky situation. balance: {}", order.getPrice(), imbalance);
             }
           }
         }

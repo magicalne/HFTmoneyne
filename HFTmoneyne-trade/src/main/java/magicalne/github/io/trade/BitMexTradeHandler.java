@@ -17,8 +17,8 @@ public class BitMexTradeHandler extends TradeHandler {
 
   @Override
   void headerHandler(int statusCode, HttpHeaders headers) {
+    log.info("Status code: {}, headers: {}", statusCode, headers);
     if (statusCode != 200) {
-      log.warn("Status code: {}, headers: {}", statusCode, headers);
     }
     switch (statusCode) {
       case 503:
