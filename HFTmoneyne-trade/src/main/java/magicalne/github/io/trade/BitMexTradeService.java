@@ -121,9 +121,9 @@ public class BitMexTradeService {
       long key = (long) (price * scale);
       ByteBuf byteBuf;
       if (side == SideEnum.Buy) {
-        byteBuf = bidCache.get(key);
+        byteBuf = bidCache == null ? null : bidCache.get(key);
       } else {
-        byteBuf = askCache.get(key);
+        byteBuf = askCache == null ? null : askCache.get(key);
       }
       if (byteBuf != null) {
         ByteBuf duplicate = byteBuf.duplicate().retain(2);
