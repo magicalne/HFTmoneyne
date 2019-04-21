@@ -20,8 +20,9 @@ public class Application {
     int scale = 10;
     double tick = 0.5;
     int qty = 50;
-
-    BitMexMarketService market = new BitMexMarketService(symbol, apiKey, apiSecret);
+    BitMexTradeService trade = new BitMexTradeService(symbol, apiKey, apiSecret, url);
+    BitMexTradeService.connect().sync();
+    BitMexMarketService market = new BitMexMarketService(symbol, apiKey, apiSecret, trade);
     BitMexMarketService.connect().sync();
     Thread.sleep(10000);
     OrderBookEntry bestBid;
@@ -31,11 +32,10 @@ public class Application {
         break;
       }
     }
-    BitMexTradeService trade = new BitMexTradeService(symbol, apiKey, apiSecret, url);
     trade.cachePlaceOrderRequest(bestBid.getPrice(), 40, qty, tick, scale);
-    BitMexTradeService.connect().sync();
-    OrderRobbery orderRobbery = new OrderRobbery(market, trade, qty, tick, scale);
-    orderRobbery.execute();
+
+//    OrderRobbery orderRobbery = new OrderRobbery(market, trade, qty, tick, scale);
+//    orderRobbery.execute();
 
     CapitalWings capitalWings = new CapitalWings(market, trade, qty, tick, scale);
     capitalWings.execute();

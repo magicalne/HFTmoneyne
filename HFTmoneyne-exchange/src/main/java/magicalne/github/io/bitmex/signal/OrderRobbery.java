@@ -57,6 +57,10 @@ public class OrderRobbery {
     });
 
   }
+
+  /*
+  todo: Should use **delete top level** event as signal!!!
+   */
   private void signal() {
     long now = System.nanoTime();
     double lastBuyPrice = market.getLastBuyPrice();

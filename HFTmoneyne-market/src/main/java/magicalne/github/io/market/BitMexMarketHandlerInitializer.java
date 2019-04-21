@@ -7,6 +7,7 @@ import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.proxy.HttpProxyHandler;
 import io.netty.handler.ssl.SslContext;
+import magicalne.github.io.trade.BitMexTradeService;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -19,10 +20,12 @@ public class BitMexMarketHandlerInitializer extends ChannelInitializer<Channel> 
 
   public BitMexMarketHandlerInitializer(SslContext sslContext,
                                         String accessKey, String accessSecret, String symbol,
-                                        int tradeTimeout, URI uri) throws InstantiationException, IllegalAccessException {
+                                        int tradeTimeout, URI uri,
+                                        BitMexTradeService tradeService)
+    throws InstantiationException, IllegalAccessException {
     this.sslContext = sslContext;
     handShaker = new MyWebSocketClientHandshaker(uri);
-    this.handler = new BitMexMarketHandler(handShaker, accessKey, accessSecret, symbol, tradeTimeout);
+    this.handler = new BitMexMarketHandler(handShaker, accessKey, accessSecret, symbol, tradeTimeout, tradeService);
   }
 
   @Override

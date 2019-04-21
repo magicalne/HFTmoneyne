@@ -10,6 +10,7 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import lombok.extern.slf4j.Slf4j;
 import magicalne.github.io.ByteBufferEvent;
+import magicalne.github.io.trade.BitMexTradeService;
 import magicalne.github.io.util.BitMexOrderBook;
 import magicalne.github.io.util.LocalOrderStore;
 import magicalne.github.io.util.MarketTradeData;
@@ -37,6 +38,7 @@ public class BitMexMarketHandler extends SimpleChannelInboundHandler<Object> {
   private final String accessSecret;
   private final String accessKey;
   private final String symbol;
+  private final BitMexTradeService tradeService;
   private final Disruptor<ByteBufferEvent> disruptor;
 
   private volatile boolean buildingOrderBook;
@@ -54,11 +56,13 @@ public class BitMexMarketHandler extends SimpleChannelInboundHandler<Object> {
 
   public BitMexMarketHandler(MyWebSocketClientHandshaker handShaker,
                              String accessKey, String accessSecret, String symbol,
-                             int tradeTimeout) throws IllegalAccessException, InstantiationException {
+                             int tradeTimeout, BitMexTradeService tradeService)
+    throws IllegalAccessException, InstantiationException {
     this.handShaker = handShaker;
     this.accessKey = accessKey;
     this.accessSecret = accessSecret;
     this.symbol = symbol;
+    this.tradeService = tradeService;
 
     this.json = WireType.JSON;
 
@@ -323,6 +327,14 @@ public class BitMexMarketHandler extends SimpleChannelInboundHandler<Object> {
   }
 
   private void onDeleteOrderBookEntry(List<OrderBookEntry> orderBookEntries) {
+    long ns = System.nanoTime();
+    for (OrderBookEntry e : orderBookEntries) {
+      if (e.getSide() == SideEnum.Buy && e.getId() == this.orderBook.getBestBid().getId()) {
+        this.tradeService.placeOrder(e.getPrice(), SideEnum.Sell, ns);
+      } else if (e.getSide() == SideEnum.Sell && e.getId() == this.orderBook.getBestAsk().getId()) {
+        this.tradeService.placeOrder(e.getPrice(), SideEnum.Buy, ns);
+      }
+    }
     this.orderBook.delete(orderBookEntries);
   }
 

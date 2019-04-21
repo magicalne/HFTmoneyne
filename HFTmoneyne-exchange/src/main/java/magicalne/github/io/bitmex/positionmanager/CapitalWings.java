@@ -53,7 +53,7 @@ public class CapitalWings {
     OrderBookEntry bestBid = this.market.getBestBid();
     OrderBookEntry bestAsk = this.market.getBestAsk();
     if (bestBid == null || bestAsk == null) return;
-
+    Position position = this.market.getPosition();
     long bestBidLong = (long) (bestBid.getPrice() * scale);
     long bestAskLong = (long) (bestAsk.getPrice() * scale);
     double imbalance = this.market.imbalance();
@@ -65,7 +65,7 @@ public class CapitalWings {
       double topFour = tick * scale * 4;
       if (order.getOrdStatus() != null &&
         (order.getOrdStatus() == OrderStatus.New || order.getOrdStatus() == OrderStatus.PartiallyFilled)) {
-        if (imbalance > balanceLevel && order.getSide() == SideEnum.Sell) {
+        if (imbalance > balanceLevel && order.getSide() == SideEnum.Sell && position.getCurrentQty() <= 0) {
           long longPrice = (long) (order.getPrice() * scale);
           if (longPrice <= bestAskLong + topFour) {
             STRING_WRAPPER.setValue(order.getOrderID());
@@ -75,7 +75,7 @@ public class CapitalWings {
               log.info("Cancel ask due to risky situation. balance: {}", imbalance);
             }
           }
-        } else if (imbalance < -balanceLevel && order.getSide() == SideEnum.Buy) {
+        } else if (imbalance < -balanceLevel && order.getSide() == SideEnum.Buy && position.getCurrentQty() >= 0) {
           long longPrice = (long) (order.getPrice() * scale);
           if (longPrice >= bestBidLong - topFour) {
             STRING_WRAPPER.setValue(order.getOrderID());

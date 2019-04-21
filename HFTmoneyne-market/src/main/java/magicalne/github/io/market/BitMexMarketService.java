@@ -16,6 +16,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.util.internal.PlatformDependent;
 import lombok.extern.slf4j.Slf4j;
+import magicalne.github.io.trade.BitMexTradeService;
 import magicalne.github.io.wire.bitmex.Order;
 import magicalne.github.io.wire.bitmex.OrderBookEntry;
 import magicalne.github.io.wire.bitmex.Position;
@@ -56,7 +57,7 @@ public class BitMexMarketService {
   private static final Bootstrap bootstrap = new Bootstrap();
   private static BitMexMarketHandlerInitializer initializer;
 
-  public BitMexMarketService(String symbol, String apiKey, String apiSecret)
+  public BitMexMarketService(String symbol, String apiKey, String apiSecret, BitMexTradeService tradeService)
     throws URISyntaxException, SSLException, IllegalAccessException, InstantiationException {
     URI uri = new URI(WEBSOCKET_URL);
     String scheme = uri.getScheme() == null? "ws" : uri.getScheme();
@@ -88,7 +89,7 @@ public class BitMexMarketService {
     }
 
     initializer =
-      new BitMexMarketHandlerInitializer(sslCtx, apiKey, apiSecret, symbol, 10000, uri);
+      new BitMexMarketHandlerInitializer(sslCtx, apiKey, apiSecret, symbol, 10000, uri, tradeService);
     if (bootstrap.config().group() == null) {
       bootstrap.group(workerGroup)
         .channel(channelClass)

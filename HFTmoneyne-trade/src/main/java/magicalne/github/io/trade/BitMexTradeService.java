@@ -116,6 +116,28 @@ public class BitMexTradeService {
     }
   }
 
+  public void placeOrder(double price, SideEnum side, long ns) {
+    try {
+      long key = (long) (price * scale);
+      ByteBuf byteBuf;
+      if (side == SideEnum.Buy) {
+        byteBuf = bidCache.get(key);
+      } else {
+        byteBuf = askCache.get(key);
+      }
+      if (byteBuf != null) {
+        ByteBuf duplicate = byteBuf.duplicate().retain(2);
+        this.initializer.sendRequest(duplicate);
+      }
+    } catch (Exception e) {
+      log.error("Encode failed", e);
+    } finally {
+      log.info("Place order cost: {}ns", System.nanoTime() - ns);
+      if (Math.abs(this.price - price) > tick * 5) {
+        rebalanceCache(price);
+      }
+    }
+  }
   public void placeOrder(int qty, double price, SideEnum side, long ns) {
 
     try {

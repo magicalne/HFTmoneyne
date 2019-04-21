@@ -1,10 +1,11 @@
 package magicalne.github.io.market.integration;
 
 import magicalne.github.io.market.BitMexMarketService;
+import magicalne.github.io.trade.BitMexTradeService;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.net.ssl.SSLException;
+import java.io.IOException;
 import java.net.URISyntaxException;
 
 public class BitMexMarketTest {
@@ -12,11 +13,13 @@ public class BitMexMarketTest {
   private BitMexMarketService test;
 
   @Before
-  public void setUp() throws URISyntaxException, SSLException, InstantiationException, IllegalAccessException {
+  public void setUp() throws URISyntaxException, IOException, InstantiationException, IllegalAccessException {
     String symbol = "XBTUSD";
     String apiKey = "b8nU8IJ6YhXdMGCws4FlpN-x";
     String apiSecret = "CqomC-BvhHvFbX5tX3Ztxf7tFN7ZvdELE5pqXPwqEHrXW5OM";
-    this.test = new BitMexMarketService(symbol, apiKey, apiSecret);
+    String url = "https://www.bitmex.com";
+    BitMexTradeService tradeService = new BitMexTradeService(symbol, apiKey, apiSecret, url);
+    this.test = new BitMexMarketService(symbol, apiKey, apiSecret, tradeService);
   }
 
   @Test
