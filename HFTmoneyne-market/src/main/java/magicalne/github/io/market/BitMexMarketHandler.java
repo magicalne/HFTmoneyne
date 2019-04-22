@@ -82,7 +82,6 @@ public class BitMexMarketHandler extends SimpleChannelInboundHandler<Object> {
 
   @Override
   public void channelActive(ChannelHandlerContext ctx) {
-    log.info("pipeline init as: {}", ctx.pipeline().names());
     handShaker.handshake0(ctx.channel());
   }
 
@@ -329,11 +328,13 @@ public class BitMexMarketHandler extends SimpleChannelInboundHandler<Object> {
   private void onDeleteOrderBookEntry(List<OrderBookEntry> orderBookEntries) {
     long ns = System.nanoTime();
     for (OrderBookEntry e : orderBookEntries) {
-      if (e.getSide() == SideEnum.Buy && e.getId() == this.orderBook.getBestBid().getId()) {
-        this.tradeService.placeOrder(this.orderBook.getBestBid().getPrice(), SideEnum.Sell, ns);
+      if (e.getSide() == SideEnum.Buy) {
+        OrderBookEntry bid = this.orderBook.getBid(e.getId());
+        this.tradeService.placeOrder(bid.getPrice(), SideEnum.Sell, ns);
         log.info("Rob ask order on {}.", this.orderBook.getBestBid().getPrice());
-      } else if (e.getSide() == SideEnum.Sell && e.getId() == this.orderBook.getBestAsk().getId()) {
-        this.tradeService.placeOrder(this.orderBook.getBestAsk().getPrice(), SideEnum.Buy, ns);
+      } else if (e.getSide() == SideEnum.Sell) {
+        OrderBookEntry ask = this.orderBook.getAsk(e.getId());
+        this.tradeService.placeOrder(ask.getPrice(), SideEnum.Buy, ns);
         log.info("Rob bid order on {}.", this.orderBook.getBestAsk().getPrice());
       }
     }
