@@ -17,27 +17,31 @@ public class BitMexTradeHandler extends TradeHandler {
 
   @Override
   void headerHandler(int statusCode, HttpHeaders headers) {
-//    if (statusCode != 200) {
-    log.info("Status code: {}, headers: {}", statusCode, headers);
-//    }
-    switch (statusCode) {
-      case 503:
-        retryForOverloadTime = System.currentTimeMillis() + 500;
-        break;
-      case 429:
+    if (statusCode != 200) {
+      log.warn("Status code: {}, headers: {}", statusCode, headers);
+      if (statusCode > 200 && statusCode < 500) {
         String retryAfter = headers.get("Retry-After");
         if (Strings.isNullOrEmpty(retryAfter)) {
           retryForResetLimitTime = Long.parseLong(retryAfter) * 1000 + System.currentTimeMillis();
+        } else {
+          String rateRemainValue = headers.get("X-RateLimit-Remaining");
+          if (Strings.isNullOrEmpty(rateRemainValue)) {
+            int remain = Integer.parseInt(rateRemainValue);
+            if (remain == 0) {
+              retryForResetLimitTime = 1000 + System.currentTimeMillis();
+            }
+          }
         }
-        break;
-      case 200:
-        if (retryForResetLimitTime > 0) {
-          retryForResetLimitTime = -1;
-        }
-        if (retryForOverloadTime > 0) {
-          retryForOverloadTime = -1;
-        }
-        break;
+      } else if (statusCode > 500) {
+        retryForOverloadTime = System.currentTimeMillis() + 500;
+      }
+    } else {
+      if (retryForResetLimitTime > 0) {
+        retryForResetLimitTime = -1;
+      }
+      if (retryForOverloadTime > 0) {
+        retryForOverloadTime = -1;
+      }
     }
   }
 

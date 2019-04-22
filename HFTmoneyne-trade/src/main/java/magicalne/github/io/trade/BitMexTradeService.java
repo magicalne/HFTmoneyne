@@ -47,7 +47,7 @@ public class BitMexTradeService {
   static String host;
   static int port;
 
-  private static final int workerThreads = 2;
+  private static final int workerThreads = 1;
   private static final ThreadFactory threadFactory =
     new AffinityThreadFactory("hft-trade", AffinityStrategies.DIFFERENT_CORE);
   private static EventLoopGroup workerGroup;
@@ -108,6 +108,7 @@ public class BitMexTradeService {
         bootstrap.group(workerGroup)
           .channel(channelClass)
           .handler(initializer)
+          .option(ChannelOption.AUTO_READ, true)
           .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
           .option(ChannelOption.TCP_NODELAY, true);
       }
@@ -143,7 +144,6 @@ public class BitMexTradeService {
     }
   }
   public void placeOrder(int qty, double price, SideEnum side, long ns) {
-
     try {
       if (qty == this.qty) {
         long key = (long) (price * scale);

@@ -59,12 +59,15 @@ public class CapitalWings {
     final double balanceLevel = 0.6;
     Order[] orders = market.getOrders();
     int index = market.getOrderArrayIndex();
+    Position position = market.getPosition();
     for (int i = 0; i < index; i ++) {
       Order order = orders[i];
       double topFour = tick * scale * 4;
       if (order.getOrdStatus() != null &&
         (order.getOrdStatus() == OrderStatus.New || order.getOrdStatus() == OrderStatus.PartiallyFilled)) {
-        if (imbalance > balanceLevel && order.getSide() == SideEnum.Sell) {
+        if (imbalance > balanceLevel && order.getSide() == SideEnum.Sell &&
+          (position.getCurrentQty() <= 0 ||
+            (position.getCurrentQty() > 0 && position.getAvgEntryPrice() > order.getPrice()))) {
           long longPrice = (long) (order.getPrice() * scale);
           if (longPrice <= bestAskLong + topFour) {
             STRING_WRAPPER.setValue(order.getOrderID());
@@ -74,7 +77,9 @@ public class CapitalWings {
               log.info("Cancel ask on {} due to risky situation. balance: {}", order.getPrice(), imbalance);
             }
           }
-        } else if (imbalance < -balanceLevel && order.getSide() == SideEnum.Buy) {
+        } else if (imbalance < -balanceLevel && order.getSide() == SideEnum.Buy &&
+          (position.getCurrentQty() >= 0 ||
+            (position.getCurrentQty() < 0 && position.getAvgEntryPrice() < order.getPrice()))) {
           long longPrice = (long) (order.getPrice() * scale);
           if (longPrice >= bestBidLong - topFour) {
             STRING_WRAPPER.setValue(order.getOrderID());
@@ -199,7 +204,8 @@ public class CapitalWings {
         bidOrder = order;
       }
     }
-    if (currentQty > 0 && imbalance < imbalanceLevel && askOrder == null) {
+    if (currentQty > 0 && askOrder == null &&
+      (bestAskPrice >= position.getAvgEntryPrice() || imbalance < imbalanceLevel)) {
       LONG_WRAPPER.setValue(bestAskLong);
       boolean success = placeAskOrderRecords.putIfAbsent(LONG_WRAPPER, System.currentTimeMillis());
       if (success) {
@@ -207,7 +213,8 @@ public class CapitalWings {
         log.info("Place new ask order.");
       }
     }
-    if (currentQty < 0 && imbalance > -imbalance && bidOrder == null) {
+    if (currentQty < 0 && bidOrder == null &&
+      (bestBidPrice <= position.getAvgEntryPrice() || imbalance > -imbalanceLevel)) {
       LONG_WRAPPER.setValue(bestBidLong);
       boolean success = placeBidOrderRecords.putIfAbsent(LONG_WRAPPER, System.currentTimeMillis());
       if (success) {

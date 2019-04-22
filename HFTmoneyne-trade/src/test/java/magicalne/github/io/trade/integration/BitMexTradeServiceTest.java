@@ -31,9 +31,9 @@ public class BitMexTradeServiceTest {
     long now = System.nanoTime();
     test.placeOrder(20, 3000, SideEnum.Buy, now);
 
-    Thread.sleep(65000);
+    Thread.sleep(5000);
     now = System.nanoTime();
-    test.placeOrder(20, 3000, SideEnum.Buy, now);
+    test.placeOrder(20, 3001, SideEnum.Buy, now);
     Thread.currentThread().join();
   }
 

@@ -4,6 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpResponseDecoder;
 import io.netty.handler.proxy.HttpProxyHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -32,10 +33,11 @@ public class BitMexTradeHandlerInitializer extends ChannelInitializer<Channel> {
 //    pipeline.addFirst(new HttpProxyHandler(new InetSocketAddress("localhost", 1087)));
     bitMexTradeHandler = new BitMexTradeHandler(host, port);
     pipeline.addLast(
-      new BitMexHttpClientCodec(),
+      new BitMexHttpRequestEncoder(),
+      new HttpResponseDecoder(),
       new IdleStateHandler(50, 50, 50),
-      bitMexTradeHandler,
-      new HttpObjectAggregator(8192));
+      new HttpObjectAggregator(8192),
+      bitMexTradeHandler);
   }
 
   void sendRequest(Object req) {

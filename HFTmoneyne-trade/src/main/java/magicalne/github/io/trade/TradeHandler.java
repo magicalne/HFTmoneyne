@@ -25,9 +25,8 @@ public abstract class TradeHandler extends SimpleChannelInboundHandler<Object> {
   }
 
   @Override
-  protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
+  public void channelRead0(ChannelHandlerContext ctx, Object msg) {
     log.info("response class type: {}", msg.getClass());
-    log.info("response: {}", msg);
     if (msg instanceof HttpResponse) {
       HttpResponse response = (HttpResponse) msg;
       if (!response.headers().isEmpty()) {
