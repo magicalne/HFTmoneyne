@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import sun.misc.Contended;
 
 @Slf4j
-public abstract class TradeHandler extends SimpleChannelInboundHandler<HttpObject> {
+public abstract class TradeHandler extends SimpleChannelInboundHandler<Object> {
 
   @Contended
   volatile long retryForOverloadTime = -1;
@@ -25,7 +25,7 @@ public abstract class TradeHandler extends SimpleChannelInboundHandler<HttpObjec
   }
 
   @Override
-  protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) {
+  protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
     log.info("response class type: {}", msg.getClass());
     log.info("response: {}", msg);
     if (msg instanceof HttpResponse) {
