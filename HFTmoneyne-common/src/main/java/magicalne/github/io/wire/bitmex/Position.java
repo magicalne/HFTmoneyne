@@ -26,6 +26,7 @@ public class Position implements Marshallable {
   private double lastPrice;
   private long lastValue;
   private volatile int currentQty;
+  private volatile double avgEntryPrice;
   private double liquidationPrice;
 
   @Override
@@ -47,29 +48,31 @@ public class Position implements Marshallable {
     this.lastPrice = wire.read(() -> "lastPrice").float64();
     this.lastValue = wire.read(() -> "lastValue").int64();
     this.currentQty = wire.read(() -> "currentQty").int32();
+    this.avgEntryPrice = wire.read(() -> "avgEntryPrice").float64();
     this.liquidationPrice = wire.read(() -> "liquidationPrice").float64();
   }
 
   @Override
   public void writeMarshallable(@NotNull WireOut wire) {
-    wire.write(() -> " account            ").int32(account);
-    wire.write(() -> " symbol             ").text(symbol);
-    wire.write(() -> " currency           ").text(currency);
-    wire.write(() -> " currentTimestamp   ").text(currentTimestamp);
-    wire.write(() -> " markPrice          ").float64(markPrice);
-    wire.write(() -> " markValue          ").int64(markValue);
-    wire.write(() -> " riskValue          ").int64(riskValue);
-    wire.write(() -> " homeNotional       ").float64(homeNotional);
-    wire.write(() -> " maintMargin        ").int64(maintMargin);
-    wire.write(() -> " unrealisedGrossPnl ").int64(unrealisedGrossPnl);
-    wire.write(() -> " unrealisedPnl      ").int64(unrealisedPnl);
-    wire.write(() -> " unrealisedPnlPcnt  ").float64(unrealisedPnlPcnt);
-    wire.write(() -> " unrealisedRoePcnt  ").float64(unrealisedRoePcnt);
-    wire.write(() -> " timestamp          ").text(timestamp);
-    wire.write(() -> " lastPrice          ").float64(lastPrice);
-    wire.write(() -> " lastValue          ").int64(lastValue);
-    wire.write(() -> " currentQty         ").int32(currentQty);
-    wire.write(() -> " liquidationPrice   ").float64(liquidationPrice);
+    wire.write(() -> "account").int32(account);
+    wire.write(() -> "symbol").text(symbol);
+    wire.write(() -> "currency").text(currency);
+    wire.write(() -> "currentTimestamp").text(currentTimestamp);
+    wire.write(() -> "markPrice").float64(markPrice);
+    wire.write(() -> "markValue").int64(markValue);
+    wire.write(() -> "riskValue").int64(riskValue);
+    wire.write(() -> "homeNotional").float64(homeNotional);
+    wire.write(() -> "maintMargin").int64(maintMargin);
+    wire.write(() -> "unrealisedGrossPnl").int64(unrealisedGrossPnl);
+    wire.write(() -> "unrealisedPnl").int64(unrealisedPnl);
+    wire.write(() -> "unrealisedPnlPcnt").float64(unrealisedPnlPcnt);
+    wire.write(() -> "unrealisedRoePcnt").float64(unrealisedRoePcnt);
+    wire.write(() -> "timestamp").text(timestamp);
+    wire.write(() -> "lastPrice").float64(lastPrice);
+    wire.write(() -> "lastValue").int64(lastValue);
+    wire.write(() -> "currentQty").int32(currentQty);
+    wire.write(() -> "avgEntryPrice").float64(avgEntryPrice);
+    wire.write(() -> "liquidationPrice").float64(liquidationPrice);
   }
 
   public void copyFrom(Position position) {
@@ -90,6 +93,9 @@ public class Position implements Marshallable {
     this.lastPrice = position.lastPrice;
     this.lastValue = position.lastValue;
     this.currentQty = position.currentQty;
+    if (position.avgEntryPrice > 0) {
+      this.avgEntryPrice = position.avgEntryPrice;
+    }
     this.liquidationPrice = position.liquidationPrice;
   }
 }
