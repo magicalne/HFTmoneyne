@@ -12,7 +12,7 @@ public class MyWebSocketClientHandshaker extends WebSocketClientHandshaker13 {
   public static final String HTTP_CLIENT_CODEC = "http";
 
   public MyWebSocketClientHandshaker(URI webSocketURL) {
-    super(webSocketURL, WebSocketVersion.V13, null, false, EmptyHttpHeaders.INSTANCE, 128000);
+    super(webSocketURL, WebSocketVersion.V13, null, false, EmptyHttpHeaders.INSTANCE, 1280000);
   }
 
   public final ChannelFuture handshake0(Channel channel) {

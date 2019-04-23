@@ -41,18 +41,20 @@ public class BitMexMarketHandler extends SimpleChannelInboundHandler<Object> {
   private final BitMexTradeService tradeService;
   private final Disruptor<ByteBufferEvent> disruptor;
 
-  private volatile boolean buildingOrderBook;
+  private boolean buildingOrderBook;
   private final BitMexOrderBook orderBook;
 
-  private volatile boolean buildingTrade;
+  private boolean buildingTrade;
   private final MarketTradeData tradeData;
 
-  private volatile boolean buildingOrder;
+  private boolean buildingOrder;
   private final LocalOrderStore localOrderStore;
 
-  private volatile boolean buildingPosition;
-  private volatile Position position;
+  private boolean buildingPosition;
+  private Position position;
   private final WireType json;
+
+  private boolean forceShutDown = false;
 
   public BitMexMarketHandler(MyWebSocketClientHandshaker handShaker,
                              String accessKey, String accessSecret, String symbol,
@@ -92,16 +94,23 @@ public class BitMexMarketHandler extends SimpleChannelInboundHandler<Object> {
 
   @Override
   public void channelUnregistered(ChannelHandlerContext ctx) {
-    ctx.channel().eventLoop().execute(() -> {
-      log.info("Reconnecting...");
-      BitMexMarketService.connect();
-    });
+    if (!forceShutDown) {
+      ctx.channel().eventLoop().execute(() -> {
+        log.info("Reconnecting...");
+        BitMexMarketService.connect();
+      });
+    }
   }
 
   @Override
   public void channelRead0(ChannelHandlerContext ctx, Object msg) {
     if (msg instanceof FullHttpResponse) {
       FullHttpResponse res = (FullHttpResponse) msg;
+      if (res.status().code() != 101) {
+        log.warn("Websocket handshake failed. status: {}", res.status());
+        forceShutDown = true;
+        ctx.close();
+      }
       handShaker.finishHandshake0(ctx.channel(), res);
       log.info("WebSocket Client connected!");
       String subOrderBookL2 = String.format(SUB, "orderBookL2_25", symbol);
