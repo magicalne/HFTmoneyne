@@ -56,15 +56,34 @@ public class CapitalWings {
     long bestBidLong = (long) (bestBid.getPrice() * scale);
     long bestAskLong = (long) (bestAsk.getPrice() * scale);
     double imbalance = this.market.imbalance();
-    final double balanceLevel = 0.6;
+    final double balanceLevel = 0.3;
     Order[] orders = market.getOrders();
     int index = market.getOrderArrayIndex();
     Position position = market.getPosition();
+    int openBidOrderCount = 0;
+    int openAskOrderCount = 0;
+    double lowestBidPrice = Double.MAX_VALUE;
+    double highestAskPrice = 0;
+    String lowestBidOrderId = null;
+    String highestAskOrderId = null;
     for (int i = 0; i < index; i ++) {
       Order order = orders[i];
       double topFour = tick * scale * 4;
       if (order.getOrdStatus() != null &&
         (order.getOrdStatus() == OrderStatus.New || order.getOrdStatus() == OrderStatus.PartiallyFilled)) {
+        if (order.getSide() == SideEnum.Buy) {
+          openBidOrderCount ++;
+          if (order.getPrice() < lowestBidPrice) {
+            lowestBidPrice = order.getPrice();
+            lowestBidOrderId = order.getOrderID();
+          }
+        } else if (order.getSide() == SideEnum.Sell) {
+          openAskOrderCount ++;
+          if (order.getPrice() > highestAskPrice) {
+            highestAskPrice = order.getPrice();
+            highestAskOrderId = order.getOrderID();
+          }
+        }
         if (imbalance > balanceLevel && order.getSide() == SideEnum.Sell &&
           (position.getCurrentQty() <= 0 ||
             (position.getCurrentQty() > 0 && position.getAvgEntryPrice() > order.getPrice()))) {
@@ -89,6 +108,23 @@ public class CapitalWings {
               log.info("Cancel bid on {} due to risky situation. balance: {}", order.getPrice(), imbalance);
             }
           }
+        }
+      }
+    }
+    if (openBidOrderCount + openAskOrderCount > 150) {
+      if (openBidOrderCount >= openAskOrderCount && lowestBidOrderId != null) {
+        STRING_WRAPPER.setValue(lowestBidOrderId);
+        boolean success = cancelOrderRecords.putIfAbsent(STRING_WRAPPER, System.currentTimeMillis());
+        if (success) {
+          trade.cancelOrder(lowestBidOrderId);
+          log.info("Cancel ask on {} due to too many orders.", lowestBidPrice);
+        }
+      } else if (openBidOrderCount < openAskOrderCount && highestAskOrderId != null) {
+        STRING_WRAPPER.setValue(highestAskOrderId);
+        boolean success = cancelOrderRecords.putIfAbsent(STRING_WRAPPER, System.currentTimeMillis());
+        if (success) {
+          trade.cancelOrder(highestAskOrderId);
+          log.info("Cancel ask on {} due to too many orders.", highestAskPrice);
         }
       }
     }
@@ -188,7 +224,7 @@ public class CapitalWings {
 
     Position position = market.getPosition();
     double imbalance = market.imbalance();
-    double imbalanceLevel = 0.6;
+    double imbalanceLevel = 0.3;
     int currentQty = position == null ? 0: position.getCurrentQty();
     Order[] orders = market.getOrders();
     Order bidOrder = null;

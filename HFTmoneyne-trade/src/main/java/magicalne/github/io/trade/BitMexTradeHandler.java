@@ -22,7 +22,12 @@ public class BitMexTradeHandler extends TradeHandler {
       if (statusCode > 200 && statusCode < 500) {
         String retryAfter = headers.get("Retry-After");
         if (Strings.isNullOrEmpty(retryAfter)) {
-          retryForResetLimitTime = Long.parseLong(retryAfter) * 1000 + System.currentTimeMillis();
+          try {
+            retryForResetLimitTime = Long.parseLong(retryAfter) * 1000 + System.currentTimeMillis();
+          } catch (NumberFormatException e) {
+            log.error("Parse retryAfter to long failed. retryAfter = {}, {}", retryAfter, e);
+            retryForResetLimitTime = System.currentTimeMillis() + 1000;
+          }
         } else {
           String rateRemainValue = headers.get("X-RateLimit-Remaining");
           if (Strings.isNullOrEmpty(rateRemainValue)) {
