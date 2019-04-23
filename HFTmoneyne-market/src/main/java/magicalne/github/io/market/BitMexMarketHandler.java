@@ -4,10 +4,7 @@ import com.google.common.hash.HashFunction;
 import com.lmax.disruptor.dsl.Disruptor;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+import io.netty.handler.codec.http.websocketx.*;
 import lombok.extern.slf4j.Slf4j;
 import magicalne.github.io.ByteBufferEvent;
 import magicalne.github.io.trade.BitMexTradeService;
@@ -106,12 +103,13 @@ public class BitMexMarketHandler extends SimpleChannelInboundHandler<Object> {
   public void channelRead0(ChannelHandlerContext ctx, Object msg) {
     if (msg instanceof FullHttpResponse) {
       FullHttpResponse res = (FullHttpResponse) msg;
-      if (res.status().code() != 101) {
-        log.warn("Websocket handshake failed. status: {}", res.status());
+      try {
+        handShaker.finishHandshake0(ctx.channel(), res);
+      } catch (WebSocketHandshakeException e) {
+        log.error("Websocket handshake failed. status: {}, {}", res.status(), e);
         forceShutDown = true;
         ctx.close();
       }
-      handShaker.finishHandshake0(ctx.channel(), res);
       log.info("WebSocket Client connected!");
       String subOrderBookL2 = String.format(SUB, "orderBookL2_25", symbol);
       ctx.writeAndFlush(new TextWebSocketFrame(subOrderBookL2));
