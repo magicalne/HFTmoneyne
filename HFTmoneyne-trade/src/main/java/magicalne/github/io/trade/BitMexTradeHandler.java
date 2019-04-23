@@ -21,7 +21,7 @@ public class BitMexTradeHandler extends TradeHandler {
       log.warn("Status code: {}, headers: {}", statusCode, headers);
       if (statusCode > 200 && statusCode < 500) {
         String retryAfter = headers.get("Retry-After");
-        if (Strings.isNullOrEmpty(retryAfter)) {
+        if (!Strings.isNullOrEmpty(retryAfter)) {
           try {
             retryForResetLimitTime = Long.parseLong(retryAfter) * 1000 + System.currentTimeMillis();
           } catch (NumberFormatException e) {
