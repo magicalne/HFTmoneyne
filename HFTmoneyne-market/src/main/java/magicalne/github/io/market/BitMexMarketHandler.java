@@ -329,13 +329,19 @@ public class BitMexMarketHandler extends SimpleChannelInboundHandler<Object> {
     long ns = System.nanoTime();
     for (OrderBookEntry e : orderBookEntries) {
       if (e.getSide() == SideEnum.Buy) {
-        OrderBookEntry bid = this.orderBook.getBid(e.getId());
-        this.tradeService.placeOrder(bid.getPrice(), SideEnum.Sell, ns);
-        log.info("Rob ask order on {}.", bid.getPrice());
+        int index = this.orderBook.getBidIndex(e.getId());
+        if (index < 5) {
+          OrderBookEntry bid = this.orderBook.getBidByIndex(index);
+          this.tradeService.placeOrder(bid.getPrice(), SideEnum.Sell, ns);
+          log.info("Rob ask order on {}.", bid.getPrice());
+        }
       } else if (e.getSide() == SideEnum.Sell) {
-        OrderBookEntry ask = this.orderBook.getAsk(e.getId());
-        this.tradeService.placeOrder(ask.getPrice(), SideEnum.Buy, ns);
-        log.info("Rob bid order on {}.", ask.getPrice());
+        int index = this.orderBook.getAskIndex(e.getId());
+        if (index < 5) {
+          OrderBookEntry ask = this.orderBook.getAskByIndex(index);
+          this.tradeService.placeOrder(ask.getPrice(), SideEnum.Buy, ns);
+          log.info("Rob bid order on {}.", ask.getPrice());
+        }
       }
     }
     this.orderBook.delete(orderBookEntries);

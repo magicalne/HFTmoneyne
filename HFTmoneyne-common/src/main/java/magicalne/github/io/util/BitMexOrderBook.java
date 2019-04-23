@@ -146,6 +146,34 @@ public class BitMexOrderBook {
     return stringBuilder.toString();
   }
 
+  public int getBidIndex(long id) {
+    for (int i = 0; i < bids.length; i ++) {
+      OrderBookEntry e = bids[i];
+      if (e.getId() == id) {
+        return i;
+      }
+    }
+    throw new IllegalArgumentException("No id in bid array: " + id); //Should never happen.
+  }
+
+  public int getAskIndex(long id) {
+    for (int i = 0; i < asks.length; i ++) {
+      OrderBookEntry e = asks[i];
+      if (e.getId() == id) {
+        return i;
+      }
+    }
+    throw new IllegalArgumentException("No id in ask array: " + id); //Should never happen.
+  }
+
+  public OrderBookEntry getBidByIndex(int index) {
+    return bids[index];
+  }
+
+  public OrderBookEntry getAskByIndex(int index) {
+    return asks[index];
+  }
+
   public OrderBookEntry getBid(long id) {
     for (OrderBookEntry e : bids) {
       if (e.getId() == id) {
