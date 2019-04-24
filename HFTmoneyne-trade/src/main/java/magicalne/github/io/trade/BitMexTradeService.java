@@ -239,11 +239,13 @@ public class BitMexTradeService {
           if (oldBuf != null) {
             DefaultFullHttpRequest req = createPlaceOrderRequest(newPrice, qty, SideEnum.Buy);
             bidCache.putIfAbsent(newKey, encoder.encode(req));
+            oldBuf.release(oldBuf.refCnt());
           }
           oldBuf = askCache.remove(key);
           if (oldBuf != null) {
             DefaultFullHttpRequest req = createPlaceOrderRequest(newPrice, qty, SideEnum.Sell);
             askCache.putIfAbsent(newKey, encoder.encode(req));
+            oldBuf.release(oldBuf.refCnt());
           }
         } catch (Exception e) {
           log.error("Failed to encode due to: ", e);

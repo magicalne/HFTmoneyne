@@ -17,6 +17,7 @@ public abstract class TradeHandler extends SimpleChannelInboundHandler<Object> {
   protected final String host;
   private final int port;
 
+  private boolean forceShutDown = false;
   ChannelHandlerContext ctx;
 
   TradeHandler(String host, int port) {
@@ -30,6 +31,11 @@ public abstract class TradeHandler extends SimpleChannelInboundHandler<Object> {
       HttpResponse response = (HttpResponse) msg;
       if (!response.headers().isEmpty()) {
         headerHandler(response.status().code(), response.headers());
+        if (response.status().code() == 403) {
+          forceShutDown = true;
+          ctx.close();
+          log.warn("Stop trading for 1 hour due to 403 status code.");
+        }
       }
     }
   }
@@ -48,10 +54,12 @@ public abstract class TradeHandler extends SimpleChannelInboundHandler<Object> {
 
   @Override
   public void channelUnregistered(final ChannelHandlerContext ctx) {
-    ctx.channel().eventLoop().execute(() -> {
-      log.info("Reconnecting to {}:{}", BitMexTradeService.host, BitMexTradeService.port);
-      BitMexTradeService.connect();
-    });
+    if (!forceShutDown) {
+      ctx.channel().eventLoop().execute(() -> {
+        log.info("Reconnecting to {}:{}", BitMexTradeService.host, BitMexTradeService.port);
+        BitMexTradeService.connect();
+      });
+    }
   }
 
   @Override
