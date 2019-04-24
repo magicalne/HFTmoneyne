@@ -56,7 +56,7 @@ public class CapitalWings {
     long bestBidLong = (long) (bestBid.getPrice() * scale);
     long bestAskLong = (long) (bestAsk.getPrice() * scale);
     double imbalance = this.market.imbalance();
-    final double balanceLevel = 0.3;
+    final double balanceLevel = 0.28;
     Order[] orders = market.getOrders();
     int index = market.getOrderArrayIndex();
     Position position = market.getPosition();
@@ -224,7 +224,7 @@ public class CapitalWings {
 
     Position position = market.getPosition();
     double imbalance = market.imbalance();
-    double imbalanceLevel = 0.3;
+    double imbalanceLevel = 0.28;
     int currentQty = position == null ? 0: position.getCurrentQty();
     Order[] orders = market.getOrders();
     Order bidOrder = null;

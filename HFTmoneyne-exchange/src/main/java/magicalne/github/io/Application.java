@@ -19,7 +19,7 @@ public class Application {
     String url = "https://www.bitmex.com";
     int scale = 10;
     double tick = 0.5;
-    int qty = 50;
+    int qty = 500;
     BitMexTradeService trade = new BitMexTradeService(symbol, apiKey, apiSecret, url);
     BitMexTradeService.connect().sync();
     BitMexMarketService market = new BitMexMarketService(symbol, apiKey, apiSecret, trade);
