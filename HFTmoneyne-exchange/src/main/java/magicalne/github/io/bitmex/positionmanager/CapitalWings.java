@@ -111,7 +111,7 @@ public class CapitalWings {
         }
       }
     }
-    if (openBidOrderCount + openAskOrderCount > 100) {
+    if (openBidOrderCount + openAskOrderCount > 50) {
       if (openBidOrderCount >= openAskOrderCount && lowestBidOrderId != null) {
         STRING_WRAPPER.setValue(lowestBidOrderId);
         boolean success = cancelOrderRecords.putIfAbsent(STRING_WRAPPER, System.currentTimeMillis());
