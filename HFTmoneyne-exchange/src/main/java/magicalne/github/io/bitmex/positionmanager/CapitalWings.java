@@ -111,13 +111,13 @@ public class CapitalWings {
         }
       }
     }
-    if (openBidOrderCount + openAskOrderCount > 50) {
+    if (openBidOrderCount + openAskOrderCount > 20) {
       if (openBidOrderCount >= openAskOrderCount && lowestBidOrderId != null) {
         STRING_WRAPPER.setValue(lowestBidOrderId);
         boolean success = cancelOrderRecords.putIfAbsent(STRING_WRAPPER, System.currentTimeMillis());
         if (success) {
           trade.cancelOrder(lowestBidOrderId);
-          log.info("Cancel ask on {} due to too many orders.", lowestBidPrice);
+          log.info("Cancel bid on {} due to too many orders.", lowestBidPrice);
         }
       } else if (openBidOrderCount < openAskOrderCount && highestAskOrderId != null) {
         STRING_WRAPPER.setValue(highestAskOrderId);
